@@ -14,6 +14,6 @@ Commands:
 
 /start - initialisation
 
-/more for force request next peace of text
+/more - force request next peace of text
 
-/help for other info
+/help - other info
