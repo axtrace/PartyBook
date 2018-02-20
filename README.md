@@ -1,7 +1,10 @@
 # PartyBook
-Telegram bot. Allows to reading book via telegram. Remembers every day with a little peace of text
+Telegram bot. 
+Allows to reading book via telegram. 
+Reminds every day with a little piece of text
 
-Input file format: .epub Output: peace of text
+Input file format: .epub 
+Output: message with next piece of text
 
 Auto-send at 20:20 everyday
 
