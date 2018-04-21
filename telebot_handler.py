@@ -144,6 +144,15 @@ def help_handler(message):
         tb.reply_to(message, e)
 
 
+@tb.message_handler(commands=['sayhi'])
+def sayhi_handler(message):
+    try:
+        chatid = message.chat.id
+        tb.send_message(chatid, 'Hi')
+    except Exception as e:
+        tb.reply_to(message, e)
+
+
 @tb.message_handler(commands=['now_reading'])
 def now_reading_handler(message):
     try:
