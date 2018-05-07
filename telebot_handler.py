@@ -2,12 +2,13 @@ import os
 import sys
 import logging
 import telebot
+from apscheduler.schedulers.background import BackgroundScheduler
 
 import time
 import config
 import file_handler
 import tokens
-from apscheduler.schedulers.background import BackgroundScheduler
+from text_transliter import TextTransliter
 
 token = tokens.test_token
 if '--prod' in sys.argv:
@@ -177,7 +178,7 @@ def handle_document(message):
         userId = message.from_user.id
         file_info = tb.get_file(message.document.file_id)
         downloaded_file = tb.download_file(file_info.file_path)
-        filename = fh.transliterate(message.document.file_name)
+        filename = TextTransliter(message.document.file_name).get_translitet()
         # todo make it throw regex, ept
         if (str(message.document.file_name).find('.epub') != -1):
             src = save_file(downloaded_file, config.path_for_save,
