@@ -19,7 +19,7 @@ class TextTransliter(object):
         # convert from russian to translit
         try:
             input_lang = detect(self._input_text)
-            if input_lang not in get_available_language_codes:
+            if input_lang not in get_available_language_codes():
                 input_lang = 'ru'
             self._output_text = translit(self._input_text, input_lang, reversed=True)
         except OSError as e:
@@ -28,10 +28,3 @@ class TextTransliter(object):
 
     def get_translitet(self):
         return self._output_text
-
-
-if __name__ == '__main__':
-    rus_str = '123 Медлячок, чтобы ты заплакала'
-
-    tt = TextTransliter(rus_str)
-    print(tt.get_translitet())
