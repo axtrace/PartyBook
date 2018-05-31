@@ -180,8 +180,7 @@ def poem_mode_handler(message):
         userId = message.from_user.id
         poem_mode_userId_list.add(userId)
         tb.send_chat_action(chatid, 'typing')
-        tb.send_message(chatid, config.poem_mode_text,
-                        reply_markup=user_markup_normal)
+        tb.send_message(chatid, config.poem_mode_text)
     except Exception as e:
         tb.reply_to(message, e)
 
