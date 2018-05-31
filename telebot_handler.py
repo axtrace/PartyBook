@@ -17,7 +17,7 @@ if '--prod' in sys.argv:
 fh = file_handler.FileHandler()
 tb = telebot.TeleBot(token)
 commands = ['/more', '/my_books', '/auto_stasus', '/now_reading',
-            '/help']
+            '/poem_mode', '/help']
 
 # todo add timestamp to logs
 logging.basicConfig(filename="sample.log", filemode="w",
@@ -31,6 +31,8 @@ user_markup_normal = telebot.types.ReplyKeyboardMarkup(True,
 for com in commands:
     user_markup_normal.row(com)
 
+poem_mode_userId_list = set()  # set of userID which choose poem_mode before sending a book file
+
 
 @tb.message_handler(commands=['start'])
 def start_handler(message):
@@ -40,7 +42,7 @@ def start_handler(message):
         if fh.db.get_current_book(userId) == -1:
             tb.send_message(chatid, config.new_user_hello)
         else:
-            tb.send_message(chatid, config.startReply,
+            tb.send_message(chatid, config.start_reply,
                             reply_markup=user_markup_normal)
     except Exception as e:
         tb.reply_to(message, e)
@@ -117,7 +119,7 @@ def process_change_book(message):
                 new_book),
                             reply_markup=user_markup_normal)
         else:
-            tb.send_message(chatid, config.bookRecognError)
+            tb.send_message(chatid, config.book_recognition_error)
     except Exception as e:
         tb.reply_to(message, e)
 
@@ -171,11 +173,29 @@ def now_reading_handler(message):
         tb.reply_to(message, e)
 
 
+@tb.message_handler(commands=['poem_mode'])
+def poem_mode_handler(message):
+    try:
+        chatid = message.chat.id
+        userId = message.from_user.id
+        poem_mode_userId_list.add(userId)
+        tb.send_chat_action(chatid, 'typing')
+        tb.send_message(chatid, config.poem_mode_text,
+                        reply_markup=user_markup_normal)
+    except Exception as e:
+        tb.reply_to(message, e)
+
+
 @tb.message_handler(content_types=['document'])
 def handle_document(message):
     try:
         chatId = message.chat.id
         userId = message.from_user.id
+        current_user_send_mode = 'by_sense'
+        if userId in poem_mode_userId_list:
+            # if user set poem_mode remember it
+            current_user_send_mode = 'by_newline'
+            poem_mode_userId_list.remove(userId)
         file_info = tb.get_file(message.document.file_id)
         downloaded_file = tb.download_file(file_info.file_path)
         filename = TextTransliter(message.document.file_name).get_translitet()
@@ -184,11 +204,11 @@ def handle_document(message):
             src = save_file(downloaded_file, config.path_for_save,
                             filename)
             # todo try to make it easy
-            fh.add_new_book(userId, chatId, src)
-            tb.send_message(chatId, config.fileAddReply,
+            fh.add_new_book(userId, chatId, src, sent_mode=current_user_send_mode)
+            tb.send_message(chatId, config.file_add_reply,
                             reply_markup=remove_markup)
         else:
-            tb.send_message(chatId, config.fileAddErrorType)
+            tb.send_message(chatId, config.file_add_error_type)
     except Exception as e:
         logger.error(e)
         tb.reply_to(message, e)
