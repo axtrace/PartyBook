@@ -48,4 +48,5 @@ if __name__ == '__main__':
     ts1 = TextSeparator(text)
     ts2 = TextSeparator(text, mode='by_sense')
     ts1._print()
+    print('----------')
     ts2._print()

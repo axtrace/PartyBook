@@ -12,29 +12,29 @@ You can stop auto-notification by command /stop_auto
 For more info use /help
 '''
 
-startReply = '''
+start_reply = '''
 Let\'s start. 
 For continue reading use command /more. 
 For upload book send .epub file
 For more info use /help
 '''
 
-fileAddReply = '''
+file_add_reply = '''
 Success! File added. 
 For start reading use command /more
 For more info use /help
 '''
 
-fileAddErrorType = 'Error! Only .epub files allowed'
-fileAddErrorFailed = 'Error! I failed with saving file. Try again'
+file_add_error_type = 'Error! Only .epub files allowed'
+file_add_error_failed = 'Error! I failed with saving file. Try again'
 
-bookRecognError = '''
+book_recognition_error = '''
 Error! I do not recognised this bookname. 
 Choose one from /my_books
 For more info use /help
 '''
 
-noUserFoundErr = 'Sorry, did not find you in users. Try command /start'
+no_user_found_error = 'Sorry, did not find you in users. Try command /start'
 
 everyday_ON = 'Everyday auto send is ON. /stop_auto'
 
@@ -49,3 +49,4 @@ You can stop auto-notification at any moment by command /stop_auto
 Other available commands are on keyboard under text field.
 Good luck!
 '''
+poem_mode_text = 'Poem mode is ON. Please send a book file'
