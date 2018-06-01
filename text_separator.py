@@ -24,13 +24,15 @@ class TextSeparator(object):
 
     def _spit_text_to_sensenses(self, mode):
         text = self._input_text
+        spec_regex = r'\w[\n\r\f\v]+[0-9A-ZА-Я]'
         if mode == 'by_sense':
             # replace [letter or digit] + newline + big letter after --> '. '
-            spec_regex = r'\w[\n\r\f\v]+[0-9A-ZА-Я]'
             text = re.sub(spec_regex, self._dashrepl, text, flags=re.M)
             # make one big string from all textlines and then seperate them by dot
             text = re.sub(r'\s+', ' ', text, flags=re.M)
-        self._output_sentenses = sent_tokenize(text, 'russian')  # todo: auto detect lang
+            self._output_sentenses = sent_tokenize(text, 'russian')  # todo: auto detect lang
+        else:
+            self._output_sentenses = text.split(sep='\n')
 
     def _dashrepl(self, matchobj):
         # replace newstring to '. '
