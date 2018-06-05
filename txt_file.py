@@ -17,20 +17,18 @@ class TxtFile(object):
     _txt_file = ''
     _txt_file_name = ''
 
-    def __init__(self, userId='', book_title=''):
-        self._make_filename_(userId, book_title)
-        self._open_file()
+    def __init__(self, path_for_save, book_title=''):
+        if book_title == '':
+            self._txt_file_name = str(os.utime()) + '.txt'
+        else:
+            self._txt_file_name = book_title + '.txt'
+        self._open_file(path_for_save)
 
-    def _open_file(self):
-        self._txt_file = open(os.path.join(self.path_for_save, self._txt_file_name), 'w')
+    def _open_file(self, path_for_save):
+        self._txt_file = open(os.path.join(path_for_save, self._txt_file_name), 'w')
 
     def _close_file(self):
         self._txt_file.close()
-
-    def _make_filename_(self, userId='', book_title=''):
-        trans_title = TextTransliter(book_title).get_translitet()
-        trans_title = trans_title.replace(" ", "_").lower()
-        self._txt_file_name = str(userId) + '_' + trans_title + '.txt'
 
     def write_text(self, text, sent_mode):
         sentenses = TextSeparator(text, mode=sent_mode).get_sentenses()
