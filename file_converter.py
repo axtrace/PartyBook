@@ -42,6 +42,7 @@ class FileConverter(object):
         while cur_text != None:
             txt_file.write_text(cur_text, sent_mode)
             cur_text = book_reader.get_next_item_text()
+        txt_file.stop_writing()
         return txt_file.get_file_name()
 
 

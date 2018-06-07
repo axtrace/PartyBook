@@ -10,6 +10,7 @@ import config
 import db_handler
 from text_separator import TextSeparator
 from text_transliter import TextTransliter
+from file_converter import FileConverter
 
 
 class FileHandler():
@@ -24,27 +25,6 @@ class FileHandler():
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
-
-    def put_epub_to_txt(self, userId, EpubPath, sent_mode='by_sense'):
-        # put text of book from epub in new txt file. Return txt file name
-        book = epub.read_epub(EpubPath)
-        trans_title = TextTransliter(book.title).get_translitet()
-        mtrans_title = trans_title.replace(" ", "_").lower()
-        txt_file_name = str(userId) + '_' + mtrans_title + '.txt'
-        txt_file = open(
-            os.path.join(config.path_for_save, txt_file_name), 'w')
-
-        for itemDoc in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-            # get text from book
-            soup = bs(itemDoc.content.decode('utf-8'), "lxml")
-            text = soup.body.get_text()
-            # write to .txt: 1 sentence = 1 line
-            sentenses = TextSeparator(text, mode=sent_mode).get_sentenses()
-            for sent in sentenses:
-                print(sent, file=txt_file)
-        print('---THE END---', file=txt_file)
-        txt_file.close()
-        return txt_file_name
 
     def get_next_portioin(self, userId):
         # Return next part of text of the book on filename
@@ -67,10 +47,11 @@ class FileHandler():
         self.db.update_book_pos(userId, curBook, i + 1)
         return part
 
-    def add_new_book(self, userId, chatId, epubPath,sent_mode):
+    def add_new_book(self, userId, chatId, epubPath, sent_mode):
         # convert epub to txt, add to database and delete source epub
         bookName = self.put_epub_to_txt(userId, epubPath, sent_mode=sent_mode)
         self.db.update_current_book(userId, chatId, bookName)
         self.db.update_book_pos(userId, bookName, 0)
-        os.remove(epubPath)
+        # have no problem with space on HDD yet. So off this option
+        # os.remove(epubPath)
         return 0
