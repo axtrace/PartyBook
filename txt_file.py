@@ -1,16 +1,5 @@
 import os
-import errno
-import logging
-import ebooklib
-
-from ebooklib import epub
-from bs4 import BeautifulSoup as bs
-
-import config
-import db_handler
-from dir_creator import DirCreator
 from text_separator import TextSeparator
-from text_transliter import TextTransliter
 
 
 class TxtFile(object):
