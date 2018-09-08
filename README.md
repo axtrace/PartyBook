@@ -1,5 +1,6 @@
 # PartyBook
-Telegram bot. 
+Telegram bot. https://telegram.me/PartyBook_bot
+
 Allows reading book via telegram. 
 
 Reminds every day with a little piece of text
