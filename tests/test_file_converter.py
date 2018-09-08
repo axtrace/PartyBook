@@ -5,16 +5,17 @@ from file_converter import FileConverter
 
 class TestEpubReader(unittest.TestCase):
     def setUp(self):
+        self.epub_path = os.path.join(os.getcwd(), 'test_book.epub')
         pass
 
     def tearDown(self):
         pass
 
-    def test_book_3rd_text(self):
-        fc = FileConverter('/home/axtrace/PycharmProjects/PartyBook/files/')
-        epub_path = os.path.join('/home/axtrace/PycharmProjects/PartyBook/tests/', 'test_brodsky.epub')
-        result = fc.save_file_as_txt(1111, epub_path)
-        self.assertEqual(result, '1111_sobranie_sochinenij.txt')
+    def test_book_convertion(self):
+        path_for_save = os.path.normpath(os.getcwd().replace('tests', 'files'))
+        fc = FileConverter(path_for_save)
+        result = fc.save_file_as_txt(140887, self.epub_path)
+        self.assertEqual(result, '140887_gippopotam.txt')
 
 
 if __name__ == '__main__':

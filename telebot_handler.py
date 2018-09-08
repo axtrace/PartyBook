@@ -130,7 +130,7 @@ def listener(message):
         chatid = message.chat.id
         userId = message.from_user.id
         tb.send_chat_action(chatid, 'typing')
-        tb.send_message(chatid, fh.get_next_portioin(userId),
+        tb.send_message(chatid, fh.get_next_portion(userId),
                         reply_markup=remove_markup)
     except Exception as e:
         tb.reply_to(message, e)
@@ -221,7 +221,7 @@ def auto_send_portions():
             userId = item[0]
             chatId = item[1]
             tb.send_chat_action(chatId, 'typing')
-            tb.send_message(chatId, fh.get_next_portioin(userId))
+            tb.send_message(chatId, fh.get_next_portion(userId))
         except Exception as e:
             logger.error(e)
     return 0

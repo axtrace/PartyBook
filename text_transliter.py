@@ -5,8 +5,6 @@ from langdetect import detect
 
 class TextTransliter(object):
     # convert text from one alphabet to other.
-    _input_text = ''
-    _output_text = ''
 
     def __init__(self, input_text='', input_lang=''):
         try:

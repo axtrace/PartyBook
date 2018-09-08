@@ -13,14 +13,12 @@ from epub_reader import EpubReader
 
 
 class FileConverter(object):
-    db = db_handler.DBHandler()
-    logging.basicConfig(filename="sample.log", filemode="w",
-                        level=logging.ERROR)
-    logger = logging.getLogger("ex")
-
-    _path_for_save = ''
 
     def __init__(self, path_for_save=''):
+        db = db_handler.DBHandler()
+        logging.basicConfig(filename="sample.log", filemode="w",
+                            level=logging.ERROR)
+        logger = logging.getLogger("ex")
         if path_for_save != '':
             self._path_for_save = path_for_save
         else:

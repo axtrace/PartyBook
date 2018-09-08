@@ -7,8 +7,6 @@ class TextSeparator(object):
     """Split text to sentenses, the way depence on mode value
     If the mode is by_sense, bot try to make sentenses even if they finished without a dot
     Else the bot make sentenses just only by newline simbols"""
-    _input_text = ''
-    _output_sentenses = []
 
     def __init__(self, in_text='', mode=''):
         """Constructor"""

@@ -3,10 +3,10 @@ from text_separator import TextSeparator
 
 
 class TxtFile(object):
-    _txt_file = ''
-    _txt_file_name = ''
 
     def __init__(self, path_for_save, book_title=''):
+        self._txt_file = ''
+        self._txt_file_name = ''
         if book_title == '':
             self._txt_file_name = str(os.utime()) + '.txt'
         else:
@@ -14,7 +14,7 @@ class TxtFile(object):
         self._open_file(path_for_save)
 
     def _open_file(self, path_for_save):
-        self._txt_file = open(os.path.join(path_for_save, self._txt_file_name), 'w')
+        self._txt_file = open(os.path.join(path_for_save, self._txt_file_name), 'w', encoding='utf-8')
 
     def _close_file(self):
         self._txt_file.close()
