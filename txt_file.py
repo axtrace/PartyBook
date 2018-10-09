@@ -3,6 +3,7 @@ from text_separator import TextSeparator
 
 
 class TxtFile(object):
+    """Class for write text in .txt file by sentenses"""
 
     def __init__(self, path_for_save, book_title=''):
         self._txt_file = ''
@@ -28,8 +29,8 @@ class TxtFile(object):
         print('---THE END---', file=self._txt_file)
         self._close_file()
 
-    def get_file(self):
+    def get_txt_file(self):
         return self._txt_file
 
-    def get_file_name(self):
+    def get_filename(self):
         return self._txt_file_name

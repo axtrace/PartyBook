@@ -1,15 +1,19 @@
 import os
+import errno
 
 
 class DirCreator(object):
-    path_for_save = ''
+    """create new working directory"""
 
-    def __init__(self, path_for_save=''):
-        self.path_for_save = path_for_save
+    new_path = ''
 
-    def create_directory_if_no_exist(self):
+    def __init__(self, new_path=''):
+        self.new_path = new_path
+        self._create_directory_if_no_exist()
+
+    def _create_directory_if_no_exist(self):
         try:
-            os.makedirs(self.path_for_save)
+            os.makedirs(self.new_path)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise

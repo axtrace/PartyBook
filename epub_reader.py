@@ -5,6 +5,7 @@ from ebooklib import epub
 
 
 class EpubReader():
+    # reade text from epub file
 
     def __init__(self, epub_path=''):
         self.epub_path = epub_path

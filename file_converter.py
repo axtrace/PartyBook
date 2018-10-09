@@ -6,16 +6,17 @@ from ebooklib import epub
 from bs4 import BeautifulSoup as bs
 
 import config
-import db_handler
+import database
 from text_transliter import TextTransliter
 from txt_file import TxtFile
 from epub_reader import EpubReader
 
 
 class FileConverter(object):
+    """convert file from epub to txt"""
 
     def __init__(self, path_for_save=''):
-        db = db_handler.DBHandler()
+        # db = database.DataBase()
         logging.basicConfig(filename="sample.log", filemode="w",
                             level=logging.ERROR)
         logger = logging.getLogger("ex")
@@ -24,16 +25,16 @@ class FileConverter(object):
         else:
             self._path_for_save = config.path_for_save
 
-    def _make_filename(self, userId='', book_title=''):
-        trans_title = TextTransliter(book_title).get_translitet()
-        trans_title = trans_title.replace(" ", "_").lower()
-        filename = str(userId) + '_' + trans_title
+    def _make_filename(self, user_id='', book_title=''):
+        trans_title = TextTransliter(book_title).get_translitet().replace(" ", "_").lower()
+        # trans_title = trans_title.replace(" ", "_").lower()
+        filename = str(user_id) + '_' + trans_title
         return filename
 
-    def save_file_as_txt(self, userId, EpubPath, sent_mode='by_sense'):
+    def save_file_as_txt(self, user_id, epub_path, sent_mode='by_sense'):
         # put text of book from epub in new txt file. Return txt file name
-        book_reader = EpubReader(EpubPath)
-        txt_title = self._make_filename(userId, book_reader.get_booktitle())
+        book_reader = EpubReader(epub_path)
+        txt_title = self._make_filename(user_id, book_reader.get_booktitle())
         txt_file = TxtFile(self._path_for_save, txt_title)
 
         cur_text = book_reader.get_next_item_text()
@@ -41,7 +42,7 @@ class FileConverter(object):
             txt_file.write_text(cur_text, sent_mode)
             cur_text = book_reader.get_next_item_text()
         txt_file.stop_writing()
-        return txt_file.get_file_name()
+        return txt_file.get_filename()
 
 
 if __name__ == '__main__':
