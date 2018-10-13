@@ -52,6 +52,18 @@ class DataBase:
         conn.close()
         return 0
 
+    def update_auto_status(self, user_id):
+        # change status of auto-sending
+        conn = sqlite3.connect('books_pos_table.sqlite')
+        cursor = conn.cursor()
+        sql = """
+         UPDATE curent_book_table SET isAutoSend=1-isAutoSend WHERE userId={0};
+         """.format(user_id)
+        cursor.executescript(sql)
+        cursor.close()
+        conn.close()
+        return 0
+
     def get_current_book(self, user_id):
         # get current book of user
         conn = sqlite3.connect('books_pos_table.sqlite')
@@ -65,22 +77,8 @@ class DataBase:
         conn.close()
 
         if fetchone is None:
-            res = -1
-        else:
-            res = str(fetchone[0])
-        return res
-
-    def update_auto_status(self, user_id):
-        # change status of auto-sending
-        conn = sqlite3.connect('books_pos_table.sqlite')
-        cursor = conn.cursor()
-        sql = """
-         UPDATE curent_book_table SET isAutoSend=1-isAutoSend WHERE userId={0};
-         """.format(user_id)
-        cursor.executescript(sql)
-        cursor.close()
-        conn.close()
-        return 0
+            return None
+        return str(fetchone[0])
 
     def get_auto_status(self, user_id):
         # return status of auto-sending

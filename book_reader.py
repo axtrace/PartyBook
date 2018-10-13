@@ -17,16 +17,17 @@ from file_converter import *
 
 
 class BookReader():
+    """Getting text from book and getting books """
 
     def __init__(self):
 
-        logging.basicConfig(filename="sample.log", filemode="w",
-                            level=logging.ERROR)
-        logger = logging.getLogger("ex")
-        # db = database.DataBase()
-        file_convertor = FileConverter()
+        # logging.basicConfig(filename="sample.log", filemode="w",
+        #                    level=logging.ERROR)
+        # logger = logging.getLogger("ex")
+        self.db = database.DataBase()
+        # file_convertor = FileConverter()
         # book_adder = BookAdder()
-        DirCreator(config.path_for_save)
+        # DirCreator(config.path_for_save)
 
     def get_next_portion(self, user_id):
         # Return next part of text of the book on filename
@@ -35,8 +36,7 @@ class BookReader():
         if current_book == -1:
             return config.error_user_finding  # 'Sorry, did not find you in users.
         pos = self.db.get_pos(user_id, current_book)
-        txt_file = open(os.path.join(config.path_for_save, current_book),
-                        'r')
+        txt_file = open(os.path.join(config.path_for_save, current_book), 'r')
         part = ''
         i = 0
         for i, line in enumerate(txt_file):
@@ -50,11 +50,11 @@ class BookReader():
         return part
 
     # def add_new_book(self, user_id, chatId, epub_path, sent_mode):
-    #     # convert epub to txt, add to database and delete source epub
-    #     # bookName = self.put_epub_to_txt(userId, epubPath, sent_mode=sent_mode)
-    #     book_name = self.file_convertor.save_file_as_txt(user_id, epub_path, sent_mode=sent_mode)
-    #     self.db.update_current_book(user_id, chatId, book_name)
-    #     self.db.update_book_pos(user_id, book_name, 0)
-    #     # have no problem with space on HDD yet. So off this option
-    #     # os.remove(epubPath)
-    #     return 0
+#     # convert epub to txt, add to database and delete source epub
+#     # bookName = self.put_epub_to_txt(userId, epubPath, sent_mode=sent_mode)
+#     book_name = self.file_convertor.save_file_as_txt(user_id, epub_path, sent_mode=sent_mode)
+#     self.db.update_current_book(user_id, chatId, book_name)
+#     self.db.update_book_pos(user_id, book_name, 0)
+#     # have no problem with space on HDD yet. So off this option
+#     # os.remove(epubPath)
+#     return 0
