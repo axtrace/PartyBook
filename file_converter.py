@@ -24,6 +24,7 @@ class FileConverter(object):
             self._path_for_save = path_for_save
         else:
             self._path_for_save = config.path_for_save
+        pass
 
     def _make_filename(self, user_id='', book_title=''):
         trans_title = TextTransliter(book_title).get_translitet().replace(" ", "_").lower()
@@ -35,7 +36,8 @@ class FileConverter(object):
         # put text of book from epub in new txt file. Return txt file name
         book_reader = EpubReader(epub_path)
         txt_title = self._make_filename(user_id, book_reader.get_booktitle())
-        txt_file = TxtFile(self._path_for_save, txt_title)
+        txt_file = TxtFile()
+        txt_file.create_file(self._path_for_save, txt_title)
 
         cur_text = book_reader.get_next_item_text()
         while cur_text != None:

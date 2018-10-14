@@ -13,6 +13,7 @@ class TextTransliter(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+        pass
 
     def _transliterate(self, input_lang):
         # convert from russian to translit
@@ -25,6 +26,7 @@ class TextTransliter(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+        pass
 
     def get_translitet(self):
         return self._output_text

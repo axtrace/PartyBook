@@ -16,6 +16,7 @@ class EpubReader():
                 self.item_list.append(item_doc)
         else:
             self.book = None
+        pass
 
     def get_booktitle(self):
         if self.book is None:

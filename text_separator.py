@@ -4,9 +4,9 @@ from nltk.tokenize import sent_tokenize
 
 
 class TextSeparator(object):
-    """Split text to sentenses, the way depence on mode value
-    If the mode is by_sense, bot try to make sentenses even if they finished without a dot
-    Else the bot make sentenses just only by newline simbols"""
+    """Split text to sentences, the way depends on mode value
+    If the mode is by_sense, bot try to make sentences even if they finished without a dot
+    Else the bot make sentences just only by newline symbols"""
 
     def __init__(self, in_text='', mode=''):
         """Constructor"""
@@ -16,9 +16,10 @@ class TextSeparator(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+        pass
 
-    def get_sentenses(self):
-        return self._output_sentenses
+    def get_sentences(self):
+        return self._output_sentences
 
     def _spit_text_to_sensenses(self, mode):
         text = self._input_text
@@ -26,20 +27,22 @@ class TextSeparator(object):
         if mode == 'by_sense':
             # replace [letter or digit] + newline + big letter after --> '. '
             text = re.sub(spec_regex, self._dashrepl, text, flags=re.M)
-            # make one big string from all textlines and then seperate them by dot
+            # make one big string from all textlines and then separate them by dot
             text = re.sub(r'\s+', ' ', text, flags=re.M)
-            self._output_sentenses = sent_tokenize(text, 'russian')  # todo: auto detect lang
+            self._output_sentences = sent_tokenize(text, 'russian')  # todo: auto detect lang
         else:
-            self._output_sentenses = text.split(sep='\n')
+            self._output_sentences = text.split(sep='\n')
+        pass
 
     def _dashrepl(self, matchobj):
         # replace newstring to '. '
-        textpeace = matchobj.group(0)
-        return re.sub(r'[\n\r\f\v]+', '. ', textpeace, flags=re.M)
+        text_piace = matchobj.group(0)
+        return re.sub(r'[\n\r\f\v]+', '. ', text_piace, flags=re.M)
 
     def _print(self):
-        for sent in self._output_sentenses:
+        for sent in self._output_sentences:
             print(sent)
+        pass
 
 
 if __name__ == '__main__':
