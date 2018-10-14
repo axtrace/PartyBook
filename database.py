@@ -1,7 +1,9 @@
 import sqlite3
 
 
-class DBHandler:
+class DataBase:
+    """work with DataBase"""
+
     def __init__(self):
         # Create table and DB if they does not exists
         conn = sqlite3.connect('books_pos_table.sqlite')
@@ -24,69 +26,67 @@ class DBHandler:
         cursor.close()
         conn.close()
 
-    def update_book_pos(self, userId, bookName, newpos):
+    def update_book_pos(self, user_id, book_name, newpos):
         # Update pos value for user and book
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
         INSERT OR IGNORE INTO books_pos_table (userId, bookName, pos) VALUES({0}, \"{1}\", {2});
         UPDATE books_pos_table SET pos={2} WHERE userId={0} and bookName=\"{1}\";
-        """.format(userId, bookName, newpos)
+        """.format(user_id, book_name, newpos)
         cursor.executescript(sql)
         cursor.close()
         conn.close()
         return 0
 
-    def update_current_book(self, userId, chatId, bookName):
+    def update_current_book(self, user_id, chat_id, book_name):
         # Update book currently reading by user
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
         INSERT OR IGNORE INTO curent_book_table (userId, chatId, bookName, isAutoSend) VALUES({0}, {1}, \"{2}\", {3});
         UPDATE curent_book_table SET bookName=\"{2}\", isAutoSend=1 WHERE userId={0};
-        """.format(userId, chatId, bookName, 1)
+        """.format(user_id, chat_id, book_name, 1)
         cursor.executescript(sql)
         cursor.close()
         conn.close()
         return 0
 
-    def get_current_book(self, userId):
+    def update_auto_status(self, user_id):
+        # change status of auto-sending
+        conn = sqlite3.connect('books_pos_table.sqlite')
+        cursor = conn.cursor()
+        sql = """
+         UPDATE curent_book_table SET isAutoSend=1-isAutoSend WHERE userId={0};
+         """.format(user_id)
+        cursor.executescript(sql)
+        cursor.close()
+        conn.close()
+        return 0
+
+    def get_current_book(self, user_id):
         # get current book of user
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
         SELECT bookname FROM curent_book_table WHERE userId={0};
-        """.format(userId)
+        """.format(user_id)
         cursor.execute(sql)
         fetchone = cursor.fetchone()
         cursor.close()
         conn.close()
 
         if fetchone is None:
-            res = -1
-        else:
-            res = str(fetchone[0])
-        return res
+            return None
+        return str(fetchone[0])
 
-    def update_auto_status(self, userId):
-        # change status of auto-sending
-        conn = sqlite3.connect('books_pos_table.sqlite')
-        cursor = conn.cursor()
-        sql = """
-         UPDATE curent_book_table SET isAutoSend=1-isAutoSend WHERE userId={0};
-         """.format(userId)
-        cursor.executescript(sql)
-        cursor.close()
-        conn.close()
-        return 0
-
-    def get_auto_status(self, userId):
+    def get_auto_status(self, user_id):
         # return status of auto-sending
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
             SELECT isAutoSend FROM curent_book_table WHERE userId={0};
-            """.format(userId)
+            """.format(user_id)
         cursor.execute(sql)
         fetchone = cursor.fetchone()
         cursor.close()
@@ -98,13 +98,13 @@ class DBHandler:
             res = int(fetchone[0])
         return res
 
-    def get_user_books(self, userId):
+    def get_user_books(self, user_id):
         # Return all user's books
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
         SELECT bookName FROM books_pos_table WHERE userId={0};
-        """.format(userId)
+        """.format(user_id)
         cursor.execute(sql)
         select_res = cursor.fetchall()
         cursor.close()
@@ -127,13 +127,13 @@ class DBHandler:
         conn.close()
         return select_res
 
-    def get_pos(self, userId, bookName):
+    def get_pos(self, user_id, book_name):
         # Return pos value for user and book
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
         SELECT pos FROM books_pos_table WHERE userId={0} and bookName=\"{1}\";
-        """.format(userId, bookName)
+        """.format(user_id, book_name)
         cursor.execute(sql)
         fetchone = cursor.fetchone()
         if fetchone is None:

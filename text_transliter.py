@@ -5,8 +5,6 @@ from langdetect import detect
 
 class TextTransliter(object):
     # convert text from one alphabet to other.
-    _input_text = ''
-    _output_text = ''
 
     def __init__(self, input_text='', input_lang=''):
         try:
@@ -15,6 +13,7 @@ class TextTransliter(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+        pass
 
     def _transliterate(self, input_lang):
         # convert from russian to translit
@@ -27,6 +26,7 @@ class TextTransliter(object):
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
+        pass
 
     def get_translitet(self):
         return self._output_text

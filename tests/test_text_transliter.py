@@ -2,7 +2,7 @@ import unittest
 from text_transliter import TextTransliter
 
 
-class TestTextSeparator(unittest.TestCase):
+class TestTextTransliter(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -24,7 +24,8 @@ class TestTextSeparator(unittest.TestCase):
     def test_big_letter_sense(self):
         text = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
         result = TextTransliter(text, input_lang='ru').get_translitet()
-        self.assertEqual(result, 'ABVGDEEZhZIJKLMNOPRSTUFHTsChShSch\'Y\'EJuJaabvgdeezhzijklmnoprstufhtschshsch\'y\'ejuja')
+        self.assertEqual(result,
+                         'ABVGDEEZhZIJKLMNOPRSTUFHTsChShSch\'Y\'EJuJaabvgdeezhzijklmnoprstufhtschshsch\'y\'ejuja')
 
 
 if __name__ == '__main__':
