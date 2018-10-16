@@ -32,7 +32,7 @@ class BooksLibrary(object):
         return auto_status
 
     def get_users_for_autosend(self):
-        return self.db.get_users_for_autosend
+        return self.db.get_users_for_autosend()
 
     def get_current_book(self, user_id, format_name=False):
         current_book = self.db.get_current_book(user_id)
