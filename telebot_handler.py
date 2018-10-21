@@ -166,6 +166,8 @@ def listener(message):
                     message.text)
         tb.send_chat_action(chat_id, 'typing')
         next_portion = book_reader.get_next_portion(user_id) + '/more'
+        if config.end_book_string in next_portion:
+            next_portion = config.message_book_finished
         tb.send_message(chat_id, next_portion, reply_markup=remove_markup)
         logger.info('Sent to user_id, chat_id: ', user_id, chat_id,
                     'Message:', next_portion)
@@ -272,7 +274,7 @@ def handle_document(message):
         # todo make it throw regex, ept
         if (local_file_path != -1):
             book_adder.add_new_book(user_id, chat_id, local_file_path,
-                                    sent_mode=_get_user_send_mode(user_id))
+                                    sending_mode=_get_user_send_mode(user_id))
             tb.send_message(chat_id, config.success_file_added,
                             reply_markup=remove_markup)
             logger.info(' Sent to user_id, chat_id: ', user_id, chat_id,
@@ -304,9 +306,21 @@ def auto_send_portions():
             user_id, chat_id = item[0], item[1]
             tb.send_chat_action(chat_id, 'typing')
             next_portion = book_reader.get_next_portion(user_id) + '/more'
-            tb.send_message(chat_id, next_portion)
-            logger.info('AUTOSENDING. Sent to user_id, chat_id: ', user_id,
+            if config.end_book_string in next_portion:
+                # book is finished
+                next_portion = config.message_book_finished + '/n /start_auto'
+                if (books_library.get_auto_status(user_id) == 1):
+                    books_library.switch_auto_staus(user_id)
+                    auto_off_msg = config.message_everyday_OFF
+                    user_markup = telebot.types.ReplyKeyboardMarkup(True,
+                                                                    False)
+                    user_markup.row('/start_auto')
+                    tb.send_message(chat_id, auto_off_msg,
+                                    reply_markup=user_markup)
+            logger.info('AUTOSENDING. Sending to user_id, chat_id: ', user_id,
                         chat_id, 'Message:', next_portion)
+            tb.send_message(chat_id, next_portion)
+
         except Exception as e:
             logger.error(e)
     return 0

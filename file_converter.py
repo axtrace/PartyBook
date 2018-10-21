@@ -27,8 +27,8 @@ class FileConverter(object):
         pass
 
     def _make_filename(self, user_id='', book_title=''):
-        trans_title = TextTransliter(book_title).get_translitet().replace(" ", "_").lower()
-        # trans_title = trans_title.replace(" ", "_").lower()
+        trans_title = TextTransliter(book_title).get_translitet()
+        trans_title = trans_title.replace(" ", "_").lower()
         filename = str(user_id) + '_' + trans_title
         return filename
 
@@ -45,10 +45,3 @@ class FileConverter(object):
             cur_text = book_reader.get_next_item_text()
         txt_file.stop_writing()
         return txt_file.get_filename()
-
-
-if __name__ == '__main__':
-    fc = FileConverter('/home/axtrace/PycharmProjects/PartyBook/files/')
-    epub_path = os.path.join('/home/axtrace/PycharmProjects/PartyBook/tests/', 'test_brodsky.epub')
-    txt_file = fc.save_file_as_txt(1111, epub_path)
-    print(txt_file)

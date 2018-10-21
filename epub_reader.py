@@ -12,7 +12,8 @@ class EpubReader():
         if epub_path != '':
             self.book = epub.read_epub(epub_path)
             self.item_list = []
-            for item_doc in self.book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+            for item_doc in self.book.get_items_of_type(
+                    ebooklib.ITEM_DOCUMENT):
                 self.item_list.append(item_doc)
         else:
             self.book = None
@@ -33,11 +34,3 @@ class EpubReader():
 
     def get_items_of_type(self, type):
         return self.book.get_items_of_type(ebooklib.ITEM_DOCUMENT)
-
-
-if __name__ == '__main__':
-    epub_path = os.path.join(os.getcwd(), '1.epub')
-    eb = EpubReader(os.path.normpath(epub_path))
-    print(eb.get_booktitle())
-    for x in range(40):
-        print(eb.get_next_item_text())
