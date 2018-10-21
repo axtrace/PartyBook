@@ -274,7 +274,7 @@ def handle_document(message):
         # todo make it throw regex, ept
         if (local_file_path != -1):
             book_adder.add_new_book(user_id, chat_id, local_file_path,
-                                    sent_mode=_get_user_send_mode(user_id))
+                                    sending_mode=_get_user_send_mode(user_id))
             tb.send_message(chat_id, config.success_file_added,
                             reply_markup=remove_markup)
             logger.info(' Sent to user_id, chat_id: ', user_id, chat_id,
