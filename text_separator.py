@@ -29,7 +29,9 @@ class TextSeparator(object):
             text = re.sub(spec_regex, self._dashrepl, text, flags=re.M)
             # make one big string from all textlines and then separate them by dot
             text = re.sub(r'\s+', ' ', text, flags=re.M)
-            self._output_sentences = sent_tokenize(text, 'russian')  # todo: auto detect lang
+            self._output_sentences = sent_tokenize(text,
+                                                   'russian')
+            # todo: auto detect lang
         else:
             self._output_sentences = text.split(sep='\n')
         pass
@@ -43,13 +45,3 @@ class TextSeparator(object):
         for sent in self._output_sentences:
             print(sent)
         pass
-
-
-if __name__ == '__main__':
-    input_file = open('input.txt', 'r', encoding='utf-8')
-    text = input_file.read()
-    ts1 = TextSeparator(text)
-    ts2 = TextSeparator(text, mode='by_sense')
-    ts1._print()
-    print('----------')
-    ts2._print()

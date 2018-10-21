@@ -3,6 +3,8 @@ import errno
 from time import gmtime, strftime
 from text_separator import TextSeparator
 
+import config
+
 
 class TxtFile(object):
     """Class for write text in .txt file by sentences"""
@@ -15,7 +17,8 @@ class TxtFile(object):
     def create_file(self, folder_for_save, book_title=''):
         try:
             if book_title == '':
-                self._txt_file_name = str(strftime("%Y-%m-%d_%H:%M:%S", gmtime())) + '.txt'
+                self._txt_file_name = str(
+                    strftime("%Y-%m-%d_%H:%M:%S", gmtime())) + '.txt'
             else:
                 self._txt_file_name = book_title + '.txt'
             file_path = os.path.join(folder_for_save, self._txt_file_name)
@@ -40,7 +43,7 @@ class TxtFile(object):
         pass
 
     def stop_writing(self):
-        print('---THE END---', file=self._txt_file)
+        print(config.end_book_string, file=self._txt_file)
         self._close_file()
         pass
 

@@ -4,6 +4,8 @@ path_for_save = os.path.join(os.getcwd(),
                              'files')  # path for saving files
 piece_size = 384  # 384 get approximately, for comfortable reading on smartphone
 
+end_book_string = '---THE END---'
+
 message_hello = '''
 Hello! It seems you are a new user! Glad to see you! 
 Please send me .epub file for start reading. 
@@ -51,9 +53,15 @@ For upload a poem book use command /poem_mode
 Other available commands are on the keyboard under text field.
 Good luck!
 '''
+
 message_poem_mode_ON = 'Poem mode is ON. Please send a book file'
 message_poem_mode_OFF = 'Poem mode is OFF. Please send a book file'  # todo: implement it
 
+message_book_finished = '''
+Congratulations! The book is finished. 
+Start already uploaded /my_books
+Or send a new file.
+'''
 message_dont_understand = 'I do not understand {}. \nSee commands at /help'
 message_now_reading = 'Now you are reading: {}. /more'
 message_booklist = 'Your books list: ' + '\n'
