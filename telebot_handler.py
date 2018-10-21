@@ -157,7 +157,12 @@ def process_change_book(message):
 def listener(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
-        logger.info('Received message.', 'user_id, chat_id', user_id, chat_id,
+        first_name = message.from_user.first_name
+        last_name = message.from_user.last_name
+        username = message.from_user.username
+        logger.info('Received message.',
+                    'first_name, last_name, user_name, user_id, chat_id',
+                    first_name, last_name, username, user_id, chat_id,
                     message.text)
         tb.send_chat_action(chat_id, 'typing')
         next_portion = book_reader.get_next_portion(user_id) + '/more'
@@ -252,10 +257,14 @@ def _get_user_send_mode(user_id):
 def handle_document(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
-        logger.info('Received message.', 'user_id, chat_id', user_id, chat_id,
+        first_name = message.from_user.first_name
+        last_name = message.from_user.last_name
+        username = message.from_user.username
+        logger.info('Received message.',
+                    'first_name, last_name, user_name, user_id, chat_id',
+                    first_name, last_name, username, user_id, chat_id,
                     message.text)
         path_for_save = config.path_for_save
-
         file_extractor = FileExtractor()
         local_file_path = file_extractor.local_save_file(tb, message,
                                                          path_for_save)
