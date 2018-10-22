@@ -304,7 +304,7 @@ def auto_send_portions():
     for item in send_list:
         try:
             user_id, chat_id = item[0], item[1]
-            tb.send_chat_action(chat_id, 'typing')
+            # tb.send_chat_action(chat_id, 'typing')
             next_portion = book_reader.get_next_portion(user_id) + '/more'
             if config.end_book_string in next_portion:
                 # book is finished
@@ -320,6 +320,7 @@ def auto_send_portions():
             logger.info('AUTOSENDING. Sending to user_id, chat_id: ', user_id,
                         chat_id, 'Message:', next_portion)
             tb.send_message(chat_id, next_portion)
+            logger.info('AUTOSENDING. OK')
 
         except Exception as e:
             logger.error(e)
