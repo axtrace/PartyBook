@@ -22,15 +22,5 @@ class BookReader():
         file_path = os.path.join(config.path_for_save, current_book)
         txt_file = TxtFile()
         text_piece, i = txt_file.read_piece(file_path, pos, config.piece_size)
-        # txt_file = open(os.path.join(config.path_for_save, current_book), 'r', encoding='utf-8')
-        # part = ''
-        # i = 0
-        # for i, line in enumerate(txt_file):
-        #     if i >= pos:
-        #         part += line
-        #     if len(part) > config.piece_size:
-        #         break
-        # part += '/more'
-        # txt_file.close()
         self.books_lib.update_book_pos(user_id, current_book, i + 1)
         return text_piece

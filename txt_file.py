@@ -7,7 +7,9 @@ import config
 
 
 class TxtFile(object):
-    """Class for write text in .txt file by sentences"""
+    """
+    Class for write text in .txt file by sentences
+    """
 
     def __init__(self):
         self._txt_file = ''
@@ -48,7 +50,6 @@ class TxtFile(object):
         pass
 
     def read_piece(self, file_path, pos, piece_size):
-        # txt_file = open(os.path.join(config.path_for_save, current_book), 'r', encoding='utf-8')
         self._open_file(file_path, mode='r')
         piece = ''
         i = 0
@@ -57,7 +58,6 @@ class TxtFile(object):
                 piece += line
             if len(piece) > piece_size:
                 break
-        # piece += '/more'
         self._close_file()
         return piece, i
 
