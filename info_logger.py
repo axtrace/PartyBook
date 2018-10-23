@@ -15,6 +15,20 @@ class BotLogger(object):
         tmp_list.extend(args)
         return ' '.join(map(str, tmp_list))
 
+    def log_message(self, message):
+        user_id, chat_id = message.from_user.id, message.chat.id
+        first_name = message.from_user.first_name
+        last_name = message.from_user.last_name
+        username = message.from_user.username
+        self.info('Received message.',
+                  'first_name, last_name, user_name, user_id, chat_id',
+                  first_name, last_name, username, user_id, chat_id,
+                  message.text)
+
+    def log_sent(self, user_id='', chat_id='', msg=''):
+        self.info('Sent to user_id, chat_id: ', user_id, chat_id,
+                  'Message:', msg)
+
     def info(self, *args):
         log_issue = self._join_args(args)
         logging.info(log_issue)
