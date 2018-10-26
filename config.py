@@ -7,17 +7,18 @@ piece_size = 384  # 384 get approximately, for comfortable reading on smartphone
 end_book_string = '---THE END---'
 
 message_hello = '''
-Hello! It seems you are a new user! Glad to see you! 
-Please send me .epub file for start reading. 
+Hello! 
+It seems you are a new user! Glad to see you! 
+Please send me .epub file as attachment for start reading. 
 I will notify you with a little piece of text every day at 20:20. 
-You can stop auto-notification by command /stop_auto
+You can stop auto-notification by command "stop_auto"
 For more info use /help
 '''
 
 success_start_reply = '''
 Let\'s start. 
-For continue reading use command /more. 
-For upload book send .epub file
+For continue reading use command \more. 
+For upload book send .epub file as attachment
 For more info use /help
 '''
 
@@ -45,10 +46,11 @@ message_everyday_OFF = 'Everyday auto send is OFF. /start_auto'
 
 message_help = '''
 I am bot for reading books.
-You can send me .epub file and start reading it.
-I will notify you with a little piece of text every day at 20:20. 
-You can request next a piece of text by command /more
-You can stop auto-notification at any moment by command /stop_auto
+For start new book just send me .epub file.
+
+I will notify you with a little piece of text every day at 20:20 (UTC+3). 
+You can request next a piece of text by command 'more'
+You can stop auto-notification at any moment by command 'stop_auto'
 For upload a poem book use command /poem_mode
 Other available commands are on the keyboard under text field.
 Good luck!
@@ -66,3 +68,10 @@ message_dont_understand = 'I do not understand {}. \nSee commands at /help'
 message_now_reading = 'Now you are reading: {}. /more'
 message_booklist = 'Your books list: ' + '\n'
 message_choose_book = '------\n' + 'Choose the book for start reading'
+message_empty_booklist = '''
+Hello! It seems you've sent me no book yet! 
+Please send me .epub file for start reading. 
+I will notify you with a little piece of text every day at 20:20. 
+You can stop auto-notification by command /stop_auto
+For more info use /help
+'''

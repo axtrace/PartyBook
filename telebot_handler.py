@@ -27,13 +27,26 @@ logger = BotLogger()
 logger.info('Telebot started')
 
 # remove_markup = telebot.types.ReplyKeyboardHide(True) # for old versions of teelbot
-remove_markup = telebot.types.ReplyKeyboardRemove(True)
-user_markup_normal = telebot.types.ReplyKeyboardMarkup(True,
-                                                       one_time_keyboard=True)
-for com in commands:
-    user_markup_normal.row(com)
+# remove_markup = telebot.types.ReplyKeyboardRemove(True)
+# user_markup_normal = telebot.types.ReplyKeyboardMarkup(True, one_time_keyboard = True)
+# for com in commands:
+#    user_markup_normal.row(com)
 
-poem_mode_user_id_list = set()  # set of userID which choose poem_mode before sending a book file
+poem_mode_user_id_list = set()  # set of user_id which choose poem_mode before sending a book file
+
+
+def markup(clist):
+    if len(clist) == 0:
+        # remove_markup = telebot.types.ReplyKeyboardHide(True) # for old versions of teelbot
+        return telebot.types.ReplyKeyboardRemove(True)
+    user_markup = telebot.types.ReplyKeyboardMarkup(True,
+                                                    one_time_keyboard=True)
+    for item in clist:
+        user_markup.row(item)
+    return user_markup
+
+
+user_markup_normal = markup(commands)
 
 
 @tb.message_handler(commands=['start'])
@@ -44,7 +57,8 @@ def start_handler(message):
         msg = config.success_start_reply
         if books_library.get_current_book(user_id) == -1:
             msg = config.message_hello
-        tb.send_message(chat_id, msg, reply_markup=user_markup_normal)
+        tb.send_message(chat_id, msg,
+                        reply_markup=markup(['/poem_mode', '/help']))
         logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
@@ -58,15 +72,14 @@ def view_autostatus(message):
         logger.log_message(message)
         # 1 means auto is ON
         is_auto_ON = (books_library.get_auto_status(user_id) == 1)
-        user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-        user_markup.row('/more')
+        markup_list = ['/more', '/help']
         if is_auto_ON:
-            user_markup.row('/stop_auto')
+            markup_list.append('/stop_auto')
             msg = config.message_everyday_ON
         else:
-            user_markup.row('/start_auto')
+            markup_list.append('/start_auto')
             msg = config.message_everyday_OFF
-        tb.send_message(chat_id, msg, reply_markup=user_markup)
+        tb.send_message(chat_id, msg, reply_markup=markup(markup_list))
         logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
@@ -105,18 +118,26 @@ def show_user_books(message):
         logger.log_message(message)
         tb.send_chat_action(chat_id, 'typing')
         books_list = books_library.get_user_books(user_id)
-        msg = config.message_booklist
-        user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-        for book in books_list:
-            msg += str(book).replace(str(user_id) + '_', '') + '\n'
-            user_markup.row('/' + str(book).replace(str(user_id) + '_', ''))
-        msg += config.message_choose_book
+        msg, user_markup = books_list_message(books_list, user_id)
         tb.send_message(chat_id, msg, reply_markup=user_markup)
         logger.log_sent(user_id, chat_id, msg)
         tb.register_next_step_handler(message, process_change_book)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
+
+
+def books_list_message(books_list, user_id):
+    # prepare message and keyboard by list of user's books
+    if len(books_list) == 0:
+        return config.message_empty_booklist, markup(['/help'])
+    msg = config.message_booklist
+    markup_list = []
+    for book in books_list:
+        msg += str(book).replace(str(user_id) + '_', '') + '\n'
+        markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
+    msg += config.message_choose_book
+    return msg, markup(markup_list)
 
 
 def process_change_book(message):
@@ -130,10 +151,9 @@ def process_change_book(message):
             books_library.update_current_book(user_id, chat_id, new_book)
             book_name = books_library.get_current_book(user_id,
                                                        format_name=True)
-            msg = config.message_now_reading.format(
-                book_name)
+            msg = config.message_now_reading.format(book_name)
             tb.send_message(chat_id, msg,
-                            reply_markup=user_markup_normal)
+                            reply_markup=markup(['/more', '/help']))
             logger.log_sent(user_id, chat_id, msg)
         else:
             tb.send_message(chat_id, config.error_book_recognition)
@@ -214,7 +234,7 @@ def poem_mode_handler(message):
                     message.text)
         tb.send_chat_action(chat_id, 'typing')
         tb.send_message(chat_id, config.message_poem_mode_ON,
-                        reply_markup=remove_markup)
+                        reply_markup=markup([]))
         logger.log_sent(user_id, chat_id, config.message_poem_mode_ON)
     except Exception as e:
         tb.reply_to(message, e)
@@ -243,7 +263,7 @@ def handle_document(message):
             book_adder.add_new_book(user_id, chat_id, local_file_path,
                                     sending_mode=_get_user_send_mode(user_id))
             tb.send_message(chat_id, config.success_file_added,
-                            reply_markup=remove_markup)
+                            reply_markup=markup([]))
             logger.log_sent(user_id, chat_id, config.success_file_added)
         else:
             tb.send_message(chat_id, config.error_file_type)
@@ -275,19 +295,15 @@ def turn_off_autostatus(user_id, chat_id):
     if books_library.get_auto_status(user_id):
         books_library.switch_auto_staus(user_id)
         auto_off_msg = config.message_everyday_OFF
-        user_markup = telebot.types.ReplyKeyboardMarkup(True,
-                                                        False)
-        user_markup.row('/start_auto')
-        user_markup.row('/my_books')
-        tb.send_message(chat_id, auto_off_msg,
-                        reply_markup=user_markup)
+        user_markup = markup(['/start_auto', '/my_books'])
+        tb.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
 
 
 def send_portion(user_id, chat_id, portion):
     logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
                 portion)
     tb.send_chat_action(chat_id, 'typing')
-    tb.send_message(chat_id, portion, reply_markup=remove_markup)
+    tb.send_message(chat_id, portion, reply_markup=markup([]))
     logger.info('OK')
     if book_finished(portion):
         msg = config.message_book_finished + '/n /start_auto' + '/n /my_books'
