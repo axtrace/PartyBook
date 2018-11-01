@@ -8,7 +8,11 @@ end_book_string = '---THE END---'
 
 message_hello = '''
 Hello! It seems you are a new user! Glad to see you! 
-Please send me .epub file for start reading. 
+Please send me .epub file for start reading.
+-----
+By the way, you can find book somewhere in Telebram.
+For example, just forward me .epub book from @flibustafreebookbot
+-----
 I will notify you with a little piece of text every day at 20:20. 
 You can stop auto-notification by command /stop_auto
 For more info use /help
@@ -46,10 +50,14 @@ message_everyday_OFF = 'Everyday auto send is OFF. /start_auto'
 message_help = '''
 I am bot for reading books.
 You can send me .epub file and start reading it.
+-----
+By the way, you can find book somewhere in Telebram.
+For example, just forward me .epub book from @flibustafreebookbot
+-----
 I will notify you with a little piece of text every day at 20:20. 
 You can request next piece of text by command /more
 You can stop auto-notification at any moment by command /stop_auto
-For upload a poem book use command /poem_mode
+For upload a poem book use this command before sending book /poem_mode
 Other available commands are on the keyboard under text field.
 Good luck!
 '''
