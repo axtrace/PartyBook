@@ -47,7 +47,7 @@ message_help = '''
 I am bot for reading books.
 You can send me .epub file and start reading it.
 I will notify you with a little piece of text every day at 20:20. 
-You can request next a piece of text by command /more
+You can request next piece of text by command /more
 You can stop auto-notification at any moment by command /stop_auto
 For upload a poem book use command /poem_mode
 Other available commands are on the keyboard under text field.
