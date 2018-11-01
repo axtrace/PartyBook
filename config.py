@@ -10,7 +10,7 @@ message_hello = '''
 Hello! It seems you are a new user! Glad to see you! 
 Please send me .epub file for start reading.
 -----
-By the way, you can find book somewhere in Telebram.
+By the way, you can find book somewhere in Telegram.
 For example, just forward me .epub book from @flibustafreebookbot
 -----
 I will notify you with a little piece of text every day at 20:20. 
@@ -51,7 +51,7 @@ message_help = '''
 I am bot for reading books.
 You can send me .epub file and start reading it.
 -----
-By the way, you can find book somewhere in Telebram.
+By the way, you can find book somewhere in Telegram.
 For example, just forward me .epub book from @flibustafreebookbot
 -----
 I will notify you with a little piece of text every day at 20:20. 
