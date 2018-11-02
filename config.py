@@ -18,7 +18,7 @@ You can stop auto-notification by command /stop_auto
 For more info use /help
 '''
 
-success_start_reply = '''
+success_stииart_reply = '''
 Let\'s start. 
 For continue reading use command /more. 
 For upload book send .epub file
