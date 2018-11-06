@@ -6,7 +6,7 @@ piece_size = 384  # 384 get approximately, for comfortable reading on smartphone
 
 end_book_string = '---THE END---'
 
-message_hello = '''
+message_success_start = '''
 Hello! It seems you are a new user! Glad to see you! 
 Please send me .epub file for start reading.
 -----
@@ -15,13 +15,7 @@ For example, just forward me .epub book from @flibustafreebookbot
 -----
 I will notify you with a little piece of text every day at 20:20. 
 You can stop auto-notification by command /stop_auto
-For more info use /help
-'''
-
-success_start_reply = '''
-Let\'s start. 
-For continue reading use command /more. 
-For upload book send .epub file
+For upload a poem please send me /poem_mode before file
 For more info use /help
 '''
 

@@ -54,9 +54,7 @@ def start_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
-        msg = config.success_start_reply
-        if books_library.get_current_book(user_id) == -1:
-            msg = config.message_hello
+        msg = config.message_success_start
         tb.send_message(chat_id, msg,
                         reply_markup=markup(['/poem_mode', '/help']))
         logger.log_sent(user_id, chat_id, msg)
