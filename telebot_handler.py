@@ -168,8 +168,7 @@ def listener(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
-        next_portion = book_reader.get_next_portion(user_id) + '/more'
-        send_portion(user_id, chat_id, next_portion)
+        send_portion(user_id, chat_id)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
@@ -300,16 +299,25 @@ def turn_off_autostatus(user_id, chat_id):
         tb.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
 
 
-def send_portion(user_id, chat_id, portion):
-    logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
-                portion)
+def send_portion(user_id, chat_id):
     tb.send_chat_action(chat_id, 'typing')
-    msg = portion
-    if book_finished(portion):
+    msg = book_reader.get_next_portion(user_id)
+    if msg is None:
+        msg = config.error_user_finding
+        logger.info('msg is None: ', user_id, chat_id,
+                    'Message:', msg)
+        tb.send_message(chat_id, msg, reply_markup=markup([]))
+        return -1
+    if book_finished(msg):
         msg += config.message_book_finished + '/n /start_auto' + '/n /my_books'
         turn_off_autostatus(user_id, chat_id)
+    else:
+        msg += '/more'
+    logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
+                msg)
     tb.send_message(chat_id, msg, reply_markup=markup([]))
     logger.info('OK')
+    return 0
 
 
 def auto_send_portions():
@@ -317,8 +325,7 @@ def auto_send_portions():
     for item in send_list:
         try:
             user_id, chat_id = item[0], item[1]
-            next_portion = book_reader.get_next_portion(user_id) + '/more'
-            send_portion(user_id, chat_id, next_portion)
+            send_portion(user_id, chat_id)
         except Exception as e:
             logger.error(e)
     return 0
