@@ -1,7 +1,6 @@
 import os
 
-path_for_save = os.path.join(os.getcwd(),
-                             'files')  # path for saving files
+path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
 piece_size = 384  # 384 get approximately, for comfortable reading on smartphone
 
 end_book_string = '---THE END---'
@@ -11,12 +10,12 @@ Hello! It seems you are a new user! Glad to see you!
 Please send me .epub file for start reading.
 -----
 By the way, you can find book somewhere in Telegram.
-For example, just forward me .epub book from @flibustafreebookbot
+For example, just forward me message with .epub book from @flibustafreebookbot
 -----
 I will notify you with a little piece of text every day at 20:20. 
 You can stop auto-notification by command /stop_auto
 For upload a poem please send me /poem_mode before file
-For more info use /help
+For more info use command /help
 '''
 
 success_file_added = '''
@@ -46,7 +45,7 @@ I am bot for reading books.
 You can send me .epub file and start reading it.
 -----
 By the way, you can find book somewhere in Telegram.
-For example, just forward me .epub book from @flibustafreebookbot
+For example, just forward me message with .epub book from @flibustafreebookbot
 -----
 I will notify you with a little piece of text every day at 20:20. 
 You can request next piece of text by command /more
