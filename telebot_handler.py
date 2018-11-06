@@ -257,9 +257,10 @@ def handle_document(message):
         logger.log_message(message)
         path_for_save = config.path_for_save
         file_extractor = FileExtractor()
+        tb.send_chat_action(chat_id, 'typing')
         local_file_path = file_extractor.local_save_file(tb, message,
                                                          path_for_save)
-        if (local_file_path != -1):
+        if local_file_path != -1:
             book_adder.add_new_book(user_id, chat_id, local_file_path,
                                     sending_mode=_get_user_send_mode(user_id))
             tb.send_message(chat_id, config.success_file_added,
@@ -303,12 +304,12 @@ def send_portion(user_id, chat_id, portion):
     logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
                 portion)
     tb.send_chat_action(chat_id, 'typing')
-    tb.send_message(chat_id, portion, reply_markup=markup([]))
-    logger.info('OK')
+    msg = portion
     if book_finished(portion):
-        msg = config.message_book_finished + '/n /start_auto' + '/n /my_books'
+        msg += config.message_book_finished + '/n /start_auto' + '/n /my_books'
         turn_off_autostatus(user_id, chat_id)
-        tb.send_message(chat_id, msg)
+    tb.send_message(chat_id, msg, reply_markup=markup([]))
+    logger.info('OK')
 
 
 def auto_send_portions():

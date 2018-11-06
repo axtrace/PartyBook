@@ -47,7 +47,6 @@ class EpubReader():
         # for sorting list of items by list of ids from spine.
         # epub readers read book in spine order
         if item not in self.spine_ids:
-            print(item, 'not in list')
             return 0
         return self.spine_ids.index(item)
 
