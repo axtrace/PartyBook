@@ -19,18 +19,11 @@ book_reader = BookReader()
 tb = telebot.TeleBot(token)
 book_adder = BookAdder()
 books_library = BooksLibrary()
-commands = ['/more', '/my_books', '/auto_stasus', '/now_reading',
+commands = ['/more', '/my_books', '/auto_status', '/now_reading',
             '/poem_mode', '/help']
 
-# todo add timestamp to logs
 logger = BotLogger()
-logger.info('Telebot started')
-
-# remove_markup = telebot.types.ReplyKeyboardHide(True) # for old versions of teelbot
-# remove_markup = telebot.types.ReplyKeyboardRemove(True)
-# user_markup_normal = telebot.types.ReplyKeyboardMarkup(True, one_time_keyboard = True)
-# for com in commands:
-#    user_markup_normal.row(com)
+logger.info('Telebot has been started')
 
 poem_mode_user_id_list = set()  # set of user_id which choose poem_mode before sending a book file
 
@@ -63,7 +56,7 @@ def start_handler(message):
         logger.error(e)
 
 
-@tb.message_handler(commands=['auto_stasus'])
+@tb.message_handler(commands=['auto_status'])
 def view_autostatus(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
@@ -298,6 +291,7 @@ def turn_off_autostatus(user_id, chat_id):
 
 
 def send_portion(user_id, chat_id):
+    logger.info('Sending action TYPING: ', user_id, chat_id)
     tb.send_chat_action(chat_id, 'typing')
     msg = book_reader.get_next_portion(user_id)
     if msg is None:
@@ -331,7 +325,8 @@ def auto_send_portions():
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(auto_send_portions, 'cron', hour=20, minute=20)
+    scheduler.add_job(auto_send_portions, 'cron', hour=00, minute=15,
+                      misfire_grace_time=3600)
     scheduler.start()
     while True:
         try:
