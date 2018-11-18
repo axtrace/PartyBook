@@ -363,8 +363,8 @@ def auto_send_portions():
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(auto_send_portions, 'cron', hour=20, minute=20,
-                      misfire_grace_time=3600)
+    scheduler.add_job(auto_send_portions, 'cron', hour=tokens.hour,
+                      minute=tokens.min, misfire_grace_time=3600)
     scheduler.start()
     while True:
         try:
