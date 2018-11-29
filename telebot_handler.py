@@ -248,7 +248,8 @@ def _get_user_send_mode(user_id):
         poem_mode_user_id_list.remove(user_id)
     return user_send_mode
 
-
+# maybe once you could make it better
+# @bot.message_handler(func=lambda message: message.document.mime_type == 'text/plain', content_types=['document'])
 @tb.message_handler(content_types=['document'])
 def handle_document(message):
     try:
