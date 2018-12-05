@@ -52,8 +52,8 @@
     "en": "Congratulations! The book is finished.\nStart already uploaded /my_books\nOr send a new .epub file."
   },
   "message_dont_understand": {
-    "ru": "Я не понял команду {}.\nДоступные команды - /help",
-    "en": "I do not understand {}.\nSee commands at /help"
+    "ru": "Я не понял команду {}.\nМожет быть, вы хотите найти книгу?\nТогда можете найти книгу в @flibustafreebookbot и переслать мне сообщение c файлом\nДоступные команды - /help",
+    "en": "I do not understand {}.\nIf you want to find the book, try @flibustafreebookbot and forward me message with a file\nSee commands at /help"
   },
   "message_lang_changed": {
     "ru": "Язык успешно изменен.\nПомощь: /help",
