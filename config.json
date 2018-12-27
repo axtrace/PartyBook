@@ -48,7 +48,7 @@
     "en": "Poem mode is OFF. Please send a book file"
   },
   "message_book_finished": {
-    "ru": "Поздравялю! Книга окончнеа.\nДля чтения ранее загруженных книг - /my_books\nИли пришлите файл новой книге в формате .epub",
+    "ru": "Поздравялю! Книга окончена.\nПросмотр ранее загруженных книг - /my_books\nТакже можете прислать файл новой книге в формате .epub",
     "en": "Congratulations! The book is finished.\nStart already uploaded /my_books\nOr send a new .epub file."
   },
   "message_dont_understand": {
