@@ -20,7 +20,8 @@ class DataBase:
             userId INTEGER PRIMARY KEY, 
             chatId INTEGER,
             bookName TEXT UNIQUE,
-            isAutoSend INTEGER);
+            isAutoSend INTEGER,
+            lang TEXT UNIQUE);
             """
         cursor.executescript(sql2)
         cursor.close()
@@ -39,14 +40,14 @@ class DataBase:
         conn.close()
         return 0
 
-    def update_current_book(self, user_id, chat_id, book_name):
+    def update_current_book(self, user_id, chat_id, book_name, lang):
         # Update book currently reading by user
         conn = sqlite3.connect('books_pos_table.sqlite')
         cursor = conn.cursor()
         sql = """
-        INSERT OR IGNORE INTO curent_book_table (userId, chatId, bookName, isAutoSend) VALUES({0}, {1}, \"{2}\", {3});
-        UPDATE curent_book_table SET bookName=\"{2}\", isAutoSend=1 WHERE userId={0};
-        """.format(user_id, chat_id, book_name, 1)
+        INSERT OR IGNORE INTO curent_book_table (userId, chatId, bookName, isAutoSend, lang) VALUES({0}, {1}, \"{2}\", {3},  \"{4}\");
+        UPDATE curent_book_table SET bookName=\"{2}\", isAutoSend=1, lang =\"{4}\"  WHERE userId={0};
+        """.format(user_id, chat_id, book_name, 1, lang)
         cursor.executescript(sql)
         cursor.close()
         conn.close()
@@ -64,6 +65,18 @@ class DataBase:
         conn.close()
         return 0
 
+    def update_lang(self, user_id, lang):
+        # change lang for user
+        conn = sqlite3.connect('books_pos_table.sqlite')
+        cursor = conn.cursor()
+        sql = """
+         UPDATE curent_book_table SET lang=\"{0}\" WHERE userId={1};
+         """.format(lang, user_id)
+        cursor.executescript(sql)
+        cursor.close()
+        conn.close()
+        return 0
+
     def get_current_book(self, user_id):
         # get current book of user
         conn = sqlite3.connect('books_pos_table.sqlite')
@@ -75,8 +88,7 @@ class DataBase:
         fetchone = cursor.fetchone()
         cursor.close()
         conn.close()
-
-        if fetchone is None:
+        if fetchone is None or None in fetchone:
             return None
         return str(fetchone[0])
 
@@ -91,8 +103,7 @@ class DataBase:
         fetchone = cursor.fetchone()
         cursor.close()
         conn.close()
-
-        if fetchone is None:
+        if fetchone is None or None in fetchone:
             res = -1
         else:
             res = int(fetchone[0])
@@ -136,10 +147,27 @@ class DataBase:
         """.format(user_id, book_name)
         cursor.execute(sql)
         fetchone = cursor.fetchone()
-        if fetchone is None:
+        if fetchone is None or None in fetchone:
             res = -1
         else:
             res = int(fetchone[0])
+        cursor.close()
+        conn.close()
+        return res
+
+    def get_lang(self, user_id):
+        # Return lang for user
+        conn = sqlite3.connect('books_pos_table.sqlite')
+        cursor = conn.cursor()
+        sql = """
+        SELECT lang FROM curent_book_table WHERE userId={0};
+        """.format(user_id)
+        cursor.execute(sql)
+        fetchone = cursor.fetchone()
+        if fetchone is None or None in fetchone:
+            res = None
+        else:
+            res = fetchone[0]
         cursor.close()
         conn.close()
         return res

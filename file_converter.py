@@ -40,7 +40,7 @@ class FileConverter(object):
         txt_file.create_file(self._path_for_save, txt_title)
 
         cur_text = book_reader.get_next_item_text()
-        while cur_text != None:
+        while cur_text is not None:
             txt_file.write_text(cur_text, sent_mode)
             cur_text = book_reader.get_next_item_text()
         txt_file.stop_writing()

@@ -19,21 +19,27 @@ book_reader = BookReader()
 tb = telebot.TeleBot(token)
 book_adder = BookAdder()
 books_library = BooksLibrary()
-commands = ['/more', '/my_books', '/auto_stasus', '/now_reading',
-            '/poem_mode', '/help']
-
-# todo add timestamp to logs
+commands = ['/help', '/more', '/my_books', '/auto_status', '/now_reading',
+            '/poem_mode', '/change_lang']
+lang_list = ['en', 'ru']
 logger = BotLogger()
-logger.info('Telebot started')
+logger.info('Telebot has been started')
 
-# remove_markup = telebot.types.ReplyKeyboardHide(True) # for old versions of teelbot
-remove_markup = telebot.types.ReplyKeyboardRemove(True)
-user_markup_normal = telebot.types.ReplyKeyboardMarkup(True,
-                                                       one_time_keyboard=True)
-for com in commands:
-    user_markup_normal.row(com)
+poem_mode_user_id_list = set()  # set of user_id which choose poem_mode before sending a book file
 
-poem_mode_user_id_list = set()  # set of userID which choose poem_mode before sending a book file
+
+def markup(clist):
+    if len(clist) == 0:
+        # remove_markup = telebot.types.ReplyKeyboardHide(True) # for old versions of teelbot
+        return telebot.types.ReplyKeyboardRemove(True)
+    user_markup = telebot.types.ReplyKeyboardMarkup(True,
+                                                    one_time_keyboard=True)
+    for item in clist:
+        user_markup.row(item)
+    return user_markup
+
+
+user_markup_normal = markup(commands)
 
 
 @tb.message_handler(commands=['start'])
@@ -41,32 +47,32 @@ def start_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
-        msg = config.success_start_reply
-        if books_library.get_current_book(user_id) == -1:
-            msg = config.message_hello
-        tb.send_message(chat_id, msg, reply_markup=user_markup_normal)
+        lang = books_library.get_lang(user_id)
+        msg = config.message_success_start[lang]
+        tb.send_message(chat_id, msg,
+                        reply_markup=markup(['/poem_mode', '/help']))
         logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
 
 
-@tb.message_handler(commands=['auto_stasus'])
+@tb.message_handler(commands=['auto_status'])
 def view_autostatus(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
         logger.log_message(message)
         # 1 means auto is ON
         is_auto_ON = (books_library.get_auto_status(user_id) == 1)
-        user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-        user_markup.row('/more')
+        markup_list = ['/more', '/help']
         if is_auto_ON:
-            user_markup.row('/stop_auto')
-            msg = config.message_everyday_ON
+            markup_list.append('/stop_auto')
+            msg = config.message_everyday_ON[lang]
         else:
-            user_markup.row('/start_auto')
-            msg = config.message_everyday_OFF
-        tb.send_message(chat_id, msg, reply_markup=user_markup)
+            markup_list.append('/start_auto')
+            msg = config.message_everyday_OFF[lang]
+        tb.send_message(chat_id, msg, reply_markup=markup(markup_list))
         logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
@@ -105,12 +111,7 @@ def show_user_books(message):
         logger.log_message(message)
         tb.send_chat_action(chat_id, 'typing')
         books_list = books_library.get_user_books(user_id)
-        msg = config.message_booklist
-        user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
-        for book in books_list:
-            msg += str(book).replace(str(user_id) + '_', '') + '\n'
-            user_markup.row('/' + str(book).replace(str(user_id) + '_', ''))
-        msg += config.message_choose_book
+        msg, user_markup = books_list_message(books_list, user_id)
         tb.send_message(chat_id, msg, reply_markup=user_markup)
         logger.log_sent(user_id, chat_id, msg)
         tb.register_next_step_handler(message, process_change_book)
@@ -119,9 +120,25 @@ def show_user_books(message):
         logger.error(e)
 
 
+def books_list_message(books_list, user_id):
+    # prepare message and keyboard by list of user's books
+    lang = books_library.get_lang(user_id)
+    if len(books_list) == 0:
+        msg = config.message_empty_booklist[lang]
+        return msg, markup(['/help'])
+    msg = str(config.message_booklist[lang])
+    markup_list = []
+    for book in books_list:
+        msg += '\t' + str(book).replace(str(user_id) + '_', '') + '\n'
+        markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
+    msg += str(config.message_choose_book[lang])
+    return msg, markup(markup_list)
+
+
 def process_change_book(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
         new_book = message.text.replace('/', '')
         new_book = str(user_id) + '_' + new_book
         tb.send_chat_action(chat_id, 'typing')
@@ -130,14 +147,14 @@ def process_change_book(message):
             books_library.update_current_book(user_id, chat_id, new_book)
             book_name = books_library.get_current_book(user_id,
                                                        format_name=True)
-            msg = config.message_now_reading.format(
-                book_name)
+            msg = config.message_now_reading[lang].format(book_name)
             tb.send_message(chat_id, msg,
-                            reply_markup=user_markup_normal)
+                            reply_markup=markup(['/more', '/help']))
             logger.log_sent(user_id, chat_id, msg)
         else:
-            tb.send_message(chat_id, config.error_book_recognition)
-            logger.log_sent(user_id, chat_id, config.error_book_recognition)
+            msg = config.error_book_recognition[lang]
+            tb.send_message(chat_id, msg)
+            logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
@@ -148,8 +165,7 @@ def listener(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
-        next_portion = book_reader.get_next_portion(user_id) + '/more'
-        send_portion(user_id, chat_id, next_portion)
+        send_portion(user_id, chat_id)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
@@ -161,9 +177,10 @@ def help_handler(message):
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
         tb.send_chat_action(chat_id, 'typing')
-        tb.send_message(chat_id, config.message_help,
-                        reply_markup=user_markup_normal)
-        logger.log_sent(user_id, chat_id, config.message_help)
+        lang = books_library.get_lang(user_id)
+        msg = config.message_help[lang]
+        tb.send_message(chat_id, msg, reply_markup=user_markup_normal)
+        logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
@@ -201,7 +218,8 @@ def now_reading_answer(user_id):
     # If no info, returns error message from config
     book_name = books_library.get_current_book(user_id, format_name=True)
     if book_name == -1:
-        return config.error_current_book
+        lang = books_library.get_lang(user_id)
+        return config.error_current_book[lang]
     return book_name
 
 
@@ -213,9 +231,10 @@ def poem_mode_handler(message):
         logger.info('Received message.', 'user_id, chat_id', user_id, chat_id,
                     message.text)
         tb.send_chat_action(chat_id, 'typing')
-        tb.send_message(chat_id, config.message_poem_mode_ON,
-                        reply_markup=remove_markup)
-        logger.log_sent(user_id, chat_id, config.message_poem_mode_ON)
+        lang = books_library.get_lang(user_id)
+        msg = config.message_poem_mode_ON[lang]
+        tb.send_message(chat_id, msg, reply_markup=markup([]))
+        logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
@@ -229,27 +248,54 @@ def _get_user_send_mode(user_id):
         poem_mode_user_id_list.remove(user_id)
     return user_send_mode
 
-
+# maybe once you could make it better
+# @bot.message_handler(func=lambda message: message.document.mime_type == 'text/plain', content_types=['document'])
 @tb.message_handler(content_types=['document'])
 def handle_document(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         logger.log_message(message)
+        lang = books_library.get_lang(user_id)
         path_for_save = config.path_for_save
         file_extractor = FileExtractor()
+        tb.send_chat_action(chat_id, 'typing')
         local_file_path = file_extractor.local_save_file(tb, message,
                                                          path_for_save)
-        if (local_file_path != -1):
+        if local_file_path != -1:
             book_adder.add_new_book(user_id, chat_id, local_file_path,
                                     sending_mode=_get_user_send_mode(user_id))
-            tb.send_message(chat_id, config.success_file_added,
-                            reply_markup=remove_markup)
-            logger.log_sent(user_id, chat_id, config.success_file_added)
+            msg = config.message_file_added[lang]
+            tb.send_message(chat_id, msg, reply_markup=markup([]))
+            logger.log_sent(user_id, chat_id, msg)
         else:
-            tb.send_message(chat_id, config.error_file_type)
+            msg = config.error_file_type[lang]
+            tb.send_message(chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
         logger.error(e)
+
+
+@tb.message_handler(commands=['change_lang'])
+def change_lang_handler(message):
+    user_id, chat_id = message.from_user.id, message.chat.id
+    logger.log_message(message)
+    msg = 'Choose language on keyboard\n'
+    tb.send_message(chat_id, msg, reply_markup=markup(lang_list))
+    logger.log_sent(user_id, chat_id, msg)
+    tb.register_next_step_handler(message, change_lang)
+
+
+def change_lang(message):
+    user_id, chat_id = message.from_user.id, message.chat.id
+    cur_lang = books_library.get_lang(user_id)
+    new_lang = message.text
+    if new_lang in lang_list:
+        books_library.update_lang(user_id, new_lang)
+        msg = config.message_lang_changed[new_lang]
+    else:
+        msg = config.error_lang_recognition[cur_lang]
+    tb.send_message(chat_id, msg)
+    logger.log_sent(user_id, chat_id, msg)
 
 
 @tb.message_handler(func=lambda message: True, content_types=['text'])
@@ -257,7 +303,8 @@ def command_default(message):
     # this is the standard reply to a normal message
     user_id, chat_id = message.from_user.id, message.chat.id
     logger.log_message(message)
-    msg = config.message_dont_understand.format(message.text)
+    lang = books_library.get_lang(user_id)
+    msg = config.message_dont_understand[lang].format(message.text)
     tb.send_message(chat_id, msg)
     logger.log_sent(user_id, chat_id, msg)
 
@@ -274,25 +321,34 @@ def turn_off_autostatus(user_id, chat_id):
     # turn off autostatus if book was finished
     if books_library.get_auto_status(user_id):
         books_library.switch_auto_staus(user_id)
-        auto_off_msg = config.message_everyday_OFF
-        user_markup = telebot.types.ReplyKeyboardMarkup(True,
-                                                        False)
-        user_markup.row('/start_auto')
-        user_markup.row('/my_books')
-        tb.send_message(chat_id, auto_off_msg,
-                        reply_markup=user_markup)
+        lang = books_library.get_lang(user_id)
+        auto_off_msg = config.message_everyday_OFF[lang]
+        user_markup = markup(['/start_auto', '/my_books'])
+        tb.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
 
 
-def send_portion(user_id, chat_id, portion):
-    logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
-                portion)
+def send_portion(user_id, chat_id):
+    logger.info('Sending action TYPING: ', user_id, chat_id)
     tb.send_chat_action(chat_id, 'typing')
-    tb.send_message(chat_id, portion, reply_markup=remove_markup)
-    logger.info('OK')
-    if book_finished(portion):
-        msg = config.message_book_finished + '/n /start_auto' + '/n /my_books'
+    msg = book_reader.get_next_portion(user_id)
+    lang = books_library.get_lang(user_id)
+    if msg is None:
+        msg = config.error_user_finding[lang]
+        logger.info('msg is None: ', user_id, chat_id,
+                    'Message:', msg)
+        tb.send_message(chat_id, msg, reply_markup=markup([]))
+        return -1
+    if book_finished(msg):
+        msg += config.message_book_finished[
+                   lang] + '/n /start_auto' + '/n /my_books'
         turn_off_autostatus(user_id, chat_id)
-        tb.send_message(chat_id, msg)
+    else:
+        msg += '/more'
+    logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
+                msg)
+    tb.send_message(chat_id, msg, reply_markup=markup([]))
+    logger.info('OK')
+    return 0
 
 
 def auto_send_portions():
@@ -300,8 +356,7 @@ def auto_send_portions():
     for item in send_list:
         try:
             user_id, chat_id = item[0], item[1]
-            next_portion = book_reader.get_next_portion(user_id) + '/more'
-            send_portion(user_id, chat_id, next_portion)
+            send_portion(user_id, chat_id)
         except Exception as e:
             logger.error(e)
     return 0
@@ -309,7 +364,8 @@ def auto_send_portions():
 
 if __name__ == '__main__':
     scheduler = BackgroundScheduler()
-    scheduler.add_job(auto_send_portions, 'cron', hour=20, minute=20)
+    scheduler.add_job(auto_send_portions, 'cron', hour=tokens.hour,
+                      minute=tokens.min, misfire_grace_time=3600)
     scheduler.start()
     while True:
         try:

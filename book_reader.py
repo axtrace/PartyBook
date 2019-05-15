@@ -17,7 +17,7 @@ class BookReader():
         # Do not recognise end of file. Return '/more' in the end of message
         current_book = self.books_lib.get_current_book(user_id)
         if current_book == -1:
-            return config.error_user_finding  # 'Sorry, did not find you in users.
+            return None # 'Sorry, did not find you in users.
         pos = self.books_lib.get_pos(user_id, current_book)
         file_path = os.path.join(config.path_for_save, current_book)
         txt_file = TxtFile()
