@@ -30,9 +30,13 @@ class BotLogger(object):
                   'Message:', msg)
 
     def info(self, *args):
-        log_issue = self._join_args(args)
-        logging.info(log_issue)
+        try:
+            log_issue = self._join_args(args)
+            logging.info(log_issue)
+        except Exception as e:
+            pass
 
-    def error(self, *args):
-        log_issue = self._join_args(args)
-        logging.error(log_issue)
+
+def error(self, *args):
+    log_issue = self._join_args(args)
+    logging.error(log_issue)
