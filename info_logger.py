@@ -37,5 +37,9 @@ class BotLogger(object):
             pass
 
     def error(self, *args):
-        log_issue = self._join_args(args)
-        logging.error(log_issue)
+        try:
+            log_issue = self._join_args(args)
+            logging.error(log_issue)
+        except Exception as e:
+            pass
+
