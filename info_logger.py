@@ -1,11 +1,13 @@
 from datetime import datetime as dt
 import logging
+from logging.handlers import RotatingFileHandler
 
 
 class BotLogger(object):
     """ Logs with now time and join all input parameters"""
 
     def __init__(self, level2=logging.INFO):
+
         logging.basicConfig(filename="log.txt",
                             format=u'%(levelname)-8s [%(asctime)s]  %(message)s',
                             level=logging.INFO)
@@ -42,4 +44,3 @@ class BotLogger(object):
             logging.error(log_issue)
         except Exception as e:
             pass
-
