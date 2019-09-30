@@ -5,7 +5,7 @@ f = open("config.json", "r", encoding='utf-8')
 cfg = json.loads(f.read())
 
 path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
-piece_size = 384  # 384 get approximately, for comfortable reading on smartphone
+piece_size = 500  # 384 get approximately, for comfortable reading on smartphone
 
 end_book_string = '---THE END---'
 

@@ -55,9 +55,10 @@ class TxtFile(object):
         i = 0
         for i, line in enumerate(self._txt_file):
             if i >= pos:
-                piece += line
-            if len(piece) > piece_size:
-                break
+                if len(piece + line) <= piece_size:
+                    piece += line
+                else:
+                    break
         self._close_file()
         return piece, i
 
