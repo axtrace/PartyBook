@@ -46,15 +46,15 @@ user_markup_normal = markup(commands)
 def start_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
-        # logger.log_message(message)
+        logger.log_message(message)
         lang = books_library.get_lang(user_id)
         msg = config.message_success_start[lang]
         tb.send_message(chat_id, msg,
                         reply_markup=markup(['/poem_mode', '/help']))
-        # logger.log_sent(user_id, chat_id, msg)
+        logger.log_sent(user_id, chat_id, msg)
     except Exception as e:
         tb.reply_to(message, e)
-        # logger.error(e)
+        logger.error(e)
 
 
 @tb.message_handler(commands=['auto_status'])
