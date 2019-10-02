@@ -60,7 +60,7 @@ class TxtFile(object):
                 else:
                     break
         self._close_file()
-        return piece, i
+        return piece, i-1
 
     def get_txt_file(self):
         return self._txt_file
