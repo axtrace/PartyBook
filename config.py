@@ -29,3 +29,9 @@ error_current_book = cfg.get('error_current_book', '')
 error_book_recognition = cfg.get('error_book_recognition', '')
 error_user_finding = cfg.get('error_user_finding', '')
 error_lang_recognition = cfg.get('error_lang_recognition', '')
+
+webhook_port = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
+webhook_listen = '0.0.0.0'
+
+webhook_ssl_cert = './webhook_cert.pem'  # Path to the ssl certificate
+webhook_ssl_priv = './webhook_pkey.pem'  # Path to the ssl private key
