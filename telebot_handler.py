@@ -1,7 +1,12 @@
 import sys
+
 import telebot
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
+import logging
+from telebot import apihelper, types
+from flask import Flask, request
+import flask
 
 import config
 import tokens
@@ -11,17 +16,52 @@ from books_library import BooksLibrary
 from file_extractor import FileExtractor
 from info_logger import BotLogger
 
+secret = "GUID"
+
 token = tokens.test_token
 if '--prod' in sys.argv:
     token = tokens.production_token
 
-book_reader = BookReader()
+webhook_host = tokens.ruvds_server_ip  # server ruvds
+webhook_url_base = "https://%s:%s" % (webhook_host, config.webhook_port)
+webhook_url_path = "/%s/" % (token)
+
+# tb = telebot.TeleBot(token, threaded=False)
 tb = telebot.TeleBot(token)
+tb.remove_webhook()
+time.sleep(1)
+tb.set_webhook(url=webhook_url_base + webhook_url_path,
+               certificate=open(config.webhook_ssl_cert, 'r'))
+
+app = flask.Flask(__name__)
+
+
+# Empty webserver index, return nothing, just http 200
+@app.route('/', methods=['GET', 'HEAD'])
+def index():
+    return ''
+
+
+# Process webhook calls
+@app.route(webhook_url_path, methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        tb.process_new_updates([update])
+        return ''
+    else:
+        flask.abort(403)
+
+
+# init classes
+book_reader = BookReader()
 book_adder = BookAdder()
 books_library = BooksLibrary()
 commands = ['/help', '/more', '/my_books', '/auto_status', '/now_reading',
             '/poem_mode', '/change_lang']
 lang_list = ['en', 'ru']
+
 logger = BotLogger()
 logger.info('Telebot has been started')
 
@@ -203,14 +243,14 @@ def now_reading_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         tb.send_chat_action(chat_id, 'typing')
-        # logger.log_message(message)
+        logger.log_message(message)
         book_name = now_reading_answer(user_id)
         tb.send_message(chat_id, book_name,
                         reply_markup=user_markup_normal)
-        # logger.log_sent(user_id, chat_id, book_name)
+        logger.log_sent(user_id, chat_id, book_name)
     except Exception as e:
         tb.reply_to(message, e)
-        # logger.error(e)
+        logger.error(e)
 
 
 def now_reading_answer(user_id):
@@ -371,7 +411,13 @@ if __name__ == '__main__':
     scheduler.start()
     while True:
         try:
-            tb.polling(none_stop=True)
+            # tb.polling(none_stop=True)
+            # Start flask server
+            app.run(host=config.webhook_listen,
+                    port=config.webhook_port,
+                    ssl_context=(
+                        config.webhook_ssl_cert, config.webhook_ssl_priv),
+                    debug=True)
         except Exception as e:
             logger.error(e)
-            time.sleep(30)
+            time.sleep(5)
