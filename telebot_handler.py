@@ -23,7 +23,7 @@ if '--prod' in sys.argv:
     token = tokens.production_token
 
 webhook_host = tokens.ruvds_server_ip  # server ruvds
-webhook_url_base = "https://%s:%s" % (config.webhook_host, config.webhook_port)
+webhook_url_base = "https://%s:%s" % (webhook_host, config.webhook_port)
 webhook_url_path = "/%s/" % (token)
 
 # tb = telebot.TeleBot(token, threaded=False)
