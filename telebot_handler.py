@@ -417,7 +417,7 @@ if __name__ == '__main__':
                     port=config.webhook_port,
                     ssl_context=(
                         config.webhook_ssl_cert, config.webhook_ssl_priv),
-                    debug=True)
+                    debug=False)
         except Exception as e:
             logger.error(e)
             time.sleep(5)
