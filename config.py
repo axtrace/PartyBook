@@ -5,7 +5,7 @@ f = open("config.json", "r", encoding='utf-8')
 cfg = json.loads(f.read())
 
 path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
-piece_size = 894  # 384 get approximately, for comfortable reading on smartphone
+piece_size = 893  # 384 get approximately, for comfortable reading on smartphone
 max_msg_size = 4096 # restriction from telegram
 
 end_book_string = '---THE END---'

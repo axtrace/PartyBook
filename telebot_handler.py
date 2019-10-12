@@ -409,18 +409,23 @@ if __name__ == '__main__':
     scheduler.add_job(auto_send_portions, 'cron', hour=tokens.hour,
                       minute=tokens.min, misfire_grace_time=3600)
     scheduler.start()
-    while True:
-        try:
-            # tb.polling(none_stop=True)
-            # Start flask server
-            if '--prod' in sys.argv:
+    if '--prod' in sys.argv:
+        while True:
+            try:
+                # Start flask server
                 app.run(host=config.webhook_listen,
                         port=config.webhook_port,
                         ssl_context=(
-                            config.webhook_ssl_cert, config.webhook_ssl_priv),
+                            config.webhook_ssl_cert,
+                            config.webhook_ssl_priv),
                         debug=False)
-            else:
+            except Exception as e:
+                logger.error(e)
+                time.sleep(15)
+    else:
+        while True:
+            try:
                 tb.polling(none_stop=True)
-        except Exception as e:
-            logger.error(e)
-            time.sleep(15)
+            except Exception as e:
+                logger.error(e)
+                time.sleep(15)
