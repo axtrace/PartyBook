@@ -29,30 +29,30 @@ webhook_url_path = "/%s/" % (token)
 # tb = telebot.TeleBot(token, threaded=False)
 tb = telebot.TeleBot(token)
 tb.remove_webhook()
-time.sleep(1)
-tb.set_webhook(url=webhook_url_base + webhook_url_path,
-               certificate=open(config.webhook_ssl_cert, 'r'))
+if '--prod' in sys.argv:
+    time.sleep(1)
+    tb.set_webhook(url=webhook_url_base + webhook_url_path,
+                   certificate=open(config.webhook_ssl_cert, 'r'))
 
-app = flask.Flask(__name__)
-
-
-# Empty webserver index, return nothing, just http 200
-@app.route('/', methods=['GET', 'HEAD'])
-def index():
-    return ''
+    app = flask.Flask(__name__)
 
 
-# Process webhook calls
-@app.route(webhook_url_path, methods=['POST'])
-def webhook():
-    if flask.request.headers.get('content-type') == 'application/json':
-        json_string = flask.request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
-        tb.process_new_updates([update])
+    # Empty webserver index, return nothing, just http 200
+    @app.route('/', methods=['GET', 'HEAD'])
+    def index():
         return ''
-    else:
-        flask.abort(403)
 
+
+    # Process webhook calls
+    @app.route(webhook_url_path, methods=['POST'])
+    def webhook():
+        if flask.request.headers.get('content-type') == 'application/json':
+            json_string = flask.request.get_data().decode('utf-8')
+            update = telebot.types.Update.de_json(json_string)
+            tb.process_new_updates([update])
+            return ''
+        else:
+            flask.abort(403)
 
 # init classes
 book_reader = BookReader()
@@ -373,23 +373,23 @@ def send_portion(user_id, chat_id):
     tb.send_chat_action(chat_id, 'typing')
     msg = book_reader.get_next_portion(user_id)
     lang = books_library.get_lang(user_id)
+    res = 0
     if msg is None:
         msg = config.error_user_finding[lang]
-        # logger.info('msg is None: ', user_id, chat_id,
-        #            'Message:', msg)
-        tb.send_message(chat_id, msg, reply_markup=markup([]))
-        return -1
-    if book_finished(msg):
+        res = -1
+    elif book_finished(msg):
         msg += config.message_book_finished[
                    lang] + '/n /start_auto' + '/n /my_books'
         turn_off_autostatus(user_id, chat_id)
     else:
         msg += '/more'
-    logger.info('Sending to user_id, chat_id: ', user_id, chat_id, 'Message:',
-                msg)
-    tb.send_message(chat_id, msg, reply_markup=markup([]))
+    m_size = config.max_msg_size  # max message size
+    while len(msg) > 0:
+        logger.info('Send to u_id, c_id: ', user_id, chat_id, 'Message:', msg)
+        tb.send_message(chat_id, msg[:m_size], reply_markup=markup([]))
+        msg = msg[m_size:]
     logger.info('OK')
-    return 0
+    return res
 
 
 def auto_send_portions():
@@ -413,11 +413,14 @@ if __name__ == '__main__':
         try:
             # tb.polling(none_stop=True)
             # Start flask server
-            app.run(host=config.webhook_listen,
-                    port=config.webhook_port,
-                    ssl_context=(
-                        config.webhook_ssl_cert, config.webhook_ssl_priv),
-                    debug=False)
+            if '--prod' in sys.argv:
+                app.run(host=config.webhook_listen,
+                        port=config.webhook_port,
+                        ssl_context=(
+                            config.webhook_ssl_cert, config.webhook_ssl_priv),
+                        debug=False)
+            else:
+                tb.polling(none_stop=True)
         except Exception as e:
             logger.error(e)
-            time.sleep(5)
+            time.sleep(15)

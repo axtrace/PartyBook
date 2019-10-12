@@ -24,9 +24,15 @@ class TextSeparator(object):
     def _spit_text_to_sensenses(self, mode):
         text = self._input_text
         spec_regex = r'\w[\n\r\f\v]+[0-9A-ZА-Я]'
+        dot_without_space_regex = r'\w\\.\w\w'  # ex: отстраняются от работы.Важнейший принцип работы мозга
         if mode == 'by_sense':
             # replace [letter or digit] + newline + big letter after --> '. '
-            text = re.sub(spec_regex, self._dashrepl, text, flags=re.M)
+            text = re.sub(spec_regex, self._new_strings_to_space, text,
+                          flags=re.M)
+            # replace [letter or digit] + dot + two letters after --> '. '
+            text = re.sub(dot_without_space_regex, self._add_space_to_dot,
+                          text,
+                          flags=re.M)
             # make one big string from all textlines and then separate them by dot
             text = re.sub(r'\s+', ' ', text, flags=re.M)
             self._output_sentences = sent_tokenize(text, 'russian')
@@ -36,10 +42,15 @@ class TextSeparator(object):
             self._output_sentences = text.split(sep='\n')
         pass
 
-    def _dashrepl(self, matchobj):
+    def _new_strings_to_space(self, matchobj):
         # replace newstring to '. '
         text_piace = matchobj.group(0)
         return re.sub(r'[\n\r\f\v]+', '. ', text_piace, flags=re.M)
+
+    def _add_space_to_dot(self, matchobj):
+        # replace '.' to '. '
+        text_piace = matchobj.group(0)
+        return re.sub(r'\\.', '. ', text_piace, flags=re.M)
 
     def _print(self):
         for sent in self._output_sentences:

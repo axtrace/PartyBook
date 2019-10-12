@@ -50,17 +50,17 @@ class TxtFile(object):
         pass
 
     def read_piece(self, file_path, pos, piece_size):
+        # get no more than 1 line more than max piece size
         self._open_file(file_path, mode='r')
         piece = ''
         i = 0
         for i, line in enumerate(self._txt_file):
             if i >= pos:
-                if len(piece + line) <= piece_size:
-                    piece += line
-                else:
-                    break
+                piece += line
+            if len(piece) > piece_size:
+                break
         self._close_file()
-        return piece, i-1
+        return piece, i
 
     def get_txt_file(self):
         return self._txt_file

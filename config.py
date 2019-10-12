@@ -6,6 +6,7 @@ cfg = json.loads(f.read())
 
 path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
 piece_size = 894  # 384 get approximately, for comfortable reading on smartphone
+max_msg_size = 4096 # restriction from telegram
 
 end_book_string = '---THE END---'
 
@@ -22,6 +23,7 @@ message_now_reading = cfg.get('message_now_reading', '')
 message_booklist = cfg.get('message_booklist', '')
 message_choose_book = cfg.get('message_choose_book', '')
 message_lang_changed = cfg.get('message_lang_changed', '')
+message_empty_booklist = cfg.get('message_empty_booklist', '')
 
 error_file_type = cfg.get('error_file_type', '')
 error_file_adding_failed = cfg.get('error_file_adding_failed', '')
