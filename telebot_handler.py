@@ -29,30 +29,29 @@ webhook_url_path = "/%s/" % (token)
 # tb = telebot.TeleBot(token, threaded=False)
 tb = telebot.TeleBot(token)
 tb.remove_webhook()
-if '--prod' in sys.argv:
-    time.sleep(1)
-    tb.set_webhook(url=webhook_url_base + webhook_url_path,
-                   certificate=open(config.webhook_ssl_cert, 'r'))
+time.sleep(1)
+tb.set_webhook(url=webhook_url_base + webhook_url_path,
+               certificate=open(config.webhook_ssl_cert, 'r'))
 
-    app = flask.Flask(__name__)
+app = flask.Flask(__name__)
 
 
-    # Empty webserver index, return nothing, just http 200
-    @app.route('/', methods=['GET', 'HEAD'])
-    def index():
+# Empty webserver index, return nothing, just http 200
+@app.route('/', methods=['GET', 'HEAD'])
+def index():
+    return ''
+
+
+# Process webhook calls
+@app.route(webhook_url_path, methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        tb.process_new_updates([update])
         return ''
-
-
-    # Process webhook calls
-    @app.route(webhook_url_path, methods=['POST'])
-    def webhook():
-        if flask.request.headers.get('content-type') == 'application/json':
-            json_string = flask.request.get_data().decode('utf-8')
-            update = telebot.types.Update.de_json(json_string)
-            tb.process_new_updates([update])
-            return ''
-        else:
-            flask.abort(403)
+    else:
+        flask.abort(403)
 
 # init classes
 book_reader = BookReader()
@@ -421,11 +420,12 @@ if __name__ == '__main__':
                         debug=False)
             except Exception as e:
                 logger.error(e)
-                time.sleep(15)
+                time.sleep(5)
     else:
+        tb.remove_webhook()
         while True:
             try:
                 tb.polling(none_stop=True)
             except Exception as e:
                 logger.error(e)
-                time.sleep(15)
+                time.sleep(5)
