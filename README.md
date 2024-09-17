@@ -42,9 +42,11 @@ Before you begin, ensure you have met the following requirements:
 
 4. Configure your database connection in the code.
 
-5. Run the bot:
+5. Rename to "tokens.py", change tokens and IP in your local repo file [token_example.py](token_examples.py)
+
+6. Run the bot:
    ```bash
-   python telebot_handler.py
+   python telebot_handler.py --prod
    ```
 
 ## Usage
