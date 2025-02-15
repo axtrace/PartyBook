@@ -22,7 +22,7 @@ def handler(event,context):
 # Start
 @bot.message_handler(commands=['start'])
 def start_helper(message):
-    bot.reply_to(message, "Привет! Отправь мне трек-номер посылки, и я проверю ее статус.")
+    bot.reply_to(message, "Привет!")
 
 
 # Default Reply
