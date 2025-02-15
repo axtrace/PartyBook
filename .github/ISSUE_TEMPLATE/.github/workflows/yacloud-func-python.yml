@@ -1,0 +1,30 @@
+name: Deploy to Yandex Cloud Functions
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Deploy Function
+      id: sls-func
+      uses: yc-actions/yc-sls-function@v2
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+        folder-id: ${{ secrets.FOLDER_ID }}
+        function-name: 'test-function33323'
+        runtime: 'python312'
+        memory: '256Mb'
+        entrypoint: 'main.handler'
+        environment: |
+          DEBUG=True
+          COUNT=1
+        include: |
+          ./src
+        exclude: |
+          **/*.ts
