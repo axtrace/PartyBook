@@ -2,12 +2,10 @@ APScheduler
 beautifulsoup4
 bs4
 certifi
+lxml
 chardet
-# -e git://github.com/aerkalov/ebooklib.git@master#egg=EbookLib
-ebooklib
 idna
 langdetect
-lxml
 nltk
 pyTelegramBotAPI
 pytz
@@ -16,3 +14,10 @@ six
 transliterate
 tzlocal
 urllib3
+beautifulsoup4
+pyTelegramBotAPI
+requests
+suds
+ydb
+# -e git://github.com/aerkalov/ebooklib.git@master#egg=EbookLib
+ebooklib

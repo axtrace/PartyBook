@@ -1,11 +1,15 @@
-from db_manager import *
+# from db_manager import *
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import db_manager
 
 
 class BooksLibrary(object):
     """class for manage user books and auto status"""
 
     def __init__(self):
-        self.db = DatabaseManager()
+        self.db = db_manager.DbManager()
         self.lang_cache = {}
         self.pos_cache = {}
 

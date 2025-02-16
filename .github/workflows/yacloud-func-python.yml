@@ -25,6 +25,14 @@ jobs:
           DEBUG=True
           COUNT=1
         include: |
-          ./src/
+          **/*.py
+          **/*.json
+          **/*.txt
         exclude: |
           **/*.ts
+          .github/**
+          tests/**
+          venv/**
+          **/*.ts
+          .gitignore
+          LICENSE

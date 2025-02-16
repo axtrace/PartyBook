@@ -1,5 +1,5 @@
 from file_converter import FileConverter
-from database import DataBase
+# from db_manager import DatabaseManager
 from books_library import *
 
 
@@ -8,15 +8,14 @@ class BookAdder(object):
 
     def __init__(self):
         self.books_lib = BooksLibrary()
-        self.db = DataBase()
+        # self.db = DatabaseManager()
+        self.fc = FileConverter()
         pass
 
     def add_new_book(self, user_id, chat_id, epub_path, sending_mode):
         # convert epub to txt, add to database and delete source epub
-        file_converter = FileConverter()
-        book_name = file_converter.save_file_as_txt(user_id, epub_path,
+        book_name = self.fc.save_file_as_txt(user_id, epub_path,
                                                     sending_mode)
         self.books_lib.update_current_book(user_id, chat_id, book_name)
         self.books_lib.update_book_pos(user_id, book_name, 0)
-        # os.remove(epubPath)
         return 0

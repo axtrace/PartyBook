@@ -1,12 +1,6 @@
 import sys
 
 import telebot
-from apscheduler.schedulers.background import BackgroundScheduler
-import time
-import logging
-from telebot import apihelper, types
-from flask import Flask, request
-import flask
 
 import config
 import tokens
@@ -26,14 +20,8 @@ webhook_host = tokens.ruvds_server_ip  # server ruvds
 webhook_url_base = "https://%s:%s" % (webhook_host, config.webhook_port)
 webhook_url_path = "/%s/" % (token)
 
-# tb = telebot.TeleBot(token, threaded=False)
-tb = telebot.TeleBot(token)
-tb.remove_webhook()
-time.sleep(1)
-tb.set_webhook(url=webhook_url_base + webhook_url_path,
-               certificate=open(config.webhook_ssl_cert, 'r'))
 
-app = flask.Flask(__name__)
+# app = flask.Flask(__name__)
 
 
 # Empty webserver index, return nothing, just http 200
@@ -41,17 +29,6 @@ app = flask.Flask(__name__)
 def index():
     return ''
 
-
-# Process webhook calls
-@app.route(webhook_url_path, methods=['POST'])
-def webhook():
-    if flask.request.headers.get('content-type') == 'application/json':
-        json_string = flask.request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
-        tb.process_new_updates([update])
-        return ''
-    else:
-        flask.abort(403)
 
 # init classes
 book_reader = BookReader()
@@ -80,8 +57,21 @@ def markup(clist):
 
 user_markup_normal = markup(commands)
 
+# Cloud Function Handler
+def handler(event,context):
+    print(event)
+    body = json.loads(event['body'])
+    update = telebot.types.Update.de_json(body)
+    bot.process_new_updates([update])
 
-@tb.message_handler(commands=['start'])
+
+# Start
+@bot.message_handler(commands=['start'])
+def start_helper(message):
+    bot.reply_to(message, "Привет! Отправь мне трек-номер посылки, и я проверю ее статус.")
+
+
+# @tb.message_handler(commands=['start'])
 def start_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
@@ -402,32 +392,3 @@ def auto_send_portions():
             logger.error(e)
     return 0
 
-
-if __name__ == '__main__':
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(auto_send_portions, 'cron', hour=tokens.hour,
-                      minute=tokens.min, misfire_grace_time=3600)
-    scheduler.start()
-    if '--prod' in sys.argv:
-        while True:
-            try:
-                # Start flask server
-                app.run(host=config.webhook_listen,
-                        port=config.webhook_port,
-                        ssl_context=(
-                            config.webhook_ssl_cert,
-                            config.webhook_ssl_priv),
-                        debug=False)
-            except Exception as e:
-                logger.error(e)
-                print(e)
-                time.sleep(5)
-    else:
-        tb.remove_webhook()
-        while True:
-            try:
-                tb.polling(none_stop=True)
-            except Exception as e:
-                logger.error(e)
-                print(e)
-                time.sleep(5)

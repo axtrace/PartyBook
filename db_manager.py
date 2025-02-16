@@ -1,10 +1,10 @@
 import json
-import re
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from src import ydb_adapter
-from src import text_replacer
+import ydb_adapter
+import text_replacer
+
 
 class DbManager:
     """interaction with DB, preparing requests and sending to execute"""
