@@ -21,12 +21,12 @@ jobs:
         runtime: 'python312'
         memory: '256Mb'
         entrypoint: 'index.handler'
-        service-account-id: ${{ secrets.SERVICE_ACCOUNT_ID }}
+        service-account-id: ${{ secrets.SERVICE_ACCOUNT_NAME }}
         environment: |
           PRODUCTION_TOKEN=${{ secrets.PRODUCTION_TOKEN }}
           TEST_TOKEN=${{ secrets.TEST_TOKEN }}
           YDB_DATABASE=${{ secrets.YDB_DATABASE }}
-          YDB_ENDPOINT=${{ secrets.YDB_ENDPOINT }}
+          YDB_ENDPOINT=${{ vars.YDB_ENDPOINT }}
         include: |
           **/*.py
           **/*.json
