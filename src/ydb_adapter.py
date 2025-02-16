@@ -40,11 +40,8 @@ def handler(event, context):
     result = pool.retry_operation_sync(execute_query)
     res = ""
     for row in result[0].rows:
-        print(row)
         res += str(row) + "\n"
-    print(res)
     data = json.loads(res.strip().replace("'", '"'))
-    print(data)
     return data['isAutoSend']
 
     return {

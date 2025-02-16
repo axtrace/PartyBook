@@ -6,7 +6,7 @@ from ebooklib import epub
 from bs4 import BeautifulSoup as bs
 
 import config
-import database
+import db_manager
 from text_transliter import TextTransliter
 from txt_file import TxtFile
 from epub_reader import EpubReader

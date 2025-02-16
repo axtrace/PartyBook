@@ -1,5 +1,5 @@
 import os
-import database
+import db_manager
 import config
 from books_library import *
 from txt_file import *
@@ -9,7 +9,7 @@ class BookReader():
     """Getting text from book and getting books """
 
     def __init__(self):
-        self.db = database.DataBase()
+        self.db = database.DatabaseManager()
         self.books_lib = BooksLibrary()
 
     def get_next_portion(self, user_id):

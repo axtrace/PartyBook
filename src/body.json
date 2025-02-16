@@ -1,0 +1,24 @@
+{
+  "update_id": 883637789,
+  "message": {
+    "message_id": 678,
+    "from": {
+      "id": 35846529,
+      "is_bot": false,
+      "first_name": "Matvey",
+      "last_name": "Sofin",
+      "username": "sofinma",
+      "language_code": "en",
+      "is_premium": true
+    },
+    "chat": {
+      "id": 35846529,
+      "first_name": "Matvey",
+      "last_name": "Sofin",
+      "username": "sofinma",
+      "type": "private"
+    },
+    "date": 1739652379,
+    "text": "jjj"
+  }
+}

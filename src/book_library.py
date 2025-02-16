@@ -1,11 +1,11 @@
-from database import *
+from db_manager import *
 
 
 class BooksLibrary(object):
     """class for manage user books and auto status"""
 
     def __init__(self):
-        self.db = DataBase()
+        self.db = DatabaseManager()
         self.lang_cache = {}
         self.pos_cache = {}
 

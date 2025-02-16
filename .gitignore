@@ -163,8 +163,6 @@ ENV/
 # token file
 tokens.py
 
-#config
-config.json
 
 # files folder
 files/

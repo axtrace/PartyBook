@@ -1,0 +1,84 @@
+{
+  'httpMethod': 'POST',
+  'headers': {
+    'Accept-Encoding': 'gzip, deflate',
+    'Content-Length': '327',
+    'Content-Type': 'application/json',
+    'Host': 'functions.yandexcloud.net',
+    'Uber-Trace-Id': '21b00cf446b151e4:a9e225d493f579bb:21b00cf446b151e4:1',
+    'X-Forwarded-For': '91.108.5.109',
+    'X-Real-Remote-Address': '[91.108.5.109]:44596',
+    'X-Request-Id': '6aaa3aeb-9407-45b7-afd1-92305758461e',
+    'X-Trace-Id': '4708aca5-3eda-449e-9d52-068dc0d70cd2'
+  },
+  'url': '',
+  'params': {},
+  'multiValueParams': {},
+  'pathParams': {},
+  'multiValueHeaders': {
+    'Accept-Encoding': [
+      'gzip, deflate'
+    ],
+    'Content-Length': [
+      '327'
+    ],
+    'Content-Type': [
+      'application/json'
+    ],
+    'Host': [
+      'functions.yandexcloud.net'
+    ],
+    'Uber-Trace-Id': [
+      '21b00cf446b151e4:a9e225d493f579bb:21b00cf446b151e4:1'
+    ],
+    'X-Forwarded-For': [
+      '91.108.5.109'
+    ],
+    'X-Real-Remote-Address': [
+      '[91.108.5.109]:44596'
+    ],
+    'X-Request-Id': [
+      '6aaa3aeb-9407-45b7-afd1-92305758461e'
+    ],
+    'X-Trace-Id': [
+      '4708aca5-3eda-449e-9d52-068dc0d70cd2'
+    ]
+  },
+  'queryStringParameters': {},
+  'multiValueQueryStringParameters': {},
+  'requestContext': {
+    'identity': {
+      'sourceIp': '91.108.5.109',
+      'userAgent': ''
+    },
+    'httpMethod': 'POST',
+    'requestId': '6aaa3aeb-9407-45b7-afd1-92305758461e',
+    'requestTime': '15/Feb/2025:20:46:19 +0000',
+    'requestTimeEpoch': 1739652379
+  },
+  'body': {
+    "update_id": 883637789,
+    "message": {
+      "message_id": 678,
+      "from": {
+        "id": 35846529,
+        "is_bot": false,
+        "first_name": "Dick",
+        "last_name": "Pic",
+        "username": "ususus",
+        "language_code": "en",
+        "is_premium": true
+      },
+      "chat": {
+        "id": 35846529,
+        "first_name": "Dick",
+        "last_name": "Pic",
+        "username": "ususus",
+        "type": "private"
+      },
+      "date": 1739652379,
+      "text": "jjj"
+    }
+  },
+  'isBase64Encoded': False
+}
