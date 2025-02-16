@@ -23,17 +23,17 @@ class BooksLibrary(object):
         pass
 
     def update_lang(self, user_id, lang):
-        self.db.update_lang(user_id, lang)
+        self.db.update_user_lang(user_id, lang)
         self.lang_cache[user_id] = lang
         return 0
 
     def get_pos(self, user_id, book_name):
-        return self.db.get_pos(user_id, book_name)
+        return self.db.get_book_pos(user_id, book_name)
 
     def get_lang(self, user_id):
         lang = self.lang_cache.get(user_id, None)
         if lang is None:
-            lang = self.db.get_lang(user_id)
+            lang = self.db.get_user_lang(user_id)
             if lang is None:
                 lang = 'ru'
                 self.update_lang(user_id, lang)

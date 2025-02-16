@@ -1,48 +1,39 @@
-import sqlite3
 import json
-
+import re
+import sys
 import os
-import ydb
-import ydb.iam
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src import ydb_adapter
+from src import text_replacer
 
 class DbManager:
-    """work with DataBase"""
+    """interaction with DB, preparing requests and sending to execute"""
 
     def __init__(self):
-        # Create driver in global space.
-        driver = ydb.Driver(
-            endpoint=os.getenv('YDB_ENDPOINT'),
-            database=os.getenv('YDB_DATABASE'),
-            credentials=ydb.iam.MetadataUrlCredentials()
-        )
-
-        # Wait for the driver to become active for requests.
-
-        driver.wait(fail_fast=True, timeout=5)
-
-        # Create the session pool instance to manage YDB sessions.
-        self.pool = ydb.SessionPool(driver)
-
-    def _run_transaction(self, session, query):
-        # Create the transaction and execute query.
-        return session.transaction().execute(
-            query,
-            commit_tx=True,
-            settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
-        )
-
-    def execute_query(self, query):
-        result = self.pool.retry_operation_sync(
-            lambda session: self._run_transaction(session, query))
-        return result
+        self.db_adapter = ydb_adapter.YdbAdapter()
+        self.text_replacer = text_replacer.TextReplacer()
 
     def _text_to_json(self, text):
-        body = text.strip().replace("'", '"')
-        body = body.replace('\n', '')
-        body = body.replace('False', 'false').replace('True', 'true')
-        json_data = json.loads(body)
-        return json_data
+        if not isinstance(text, str):
+            return text
+
+        text_dict = {
+                 "'": '"',
+                 'b"': '"',
+                 '\n': '',
+                 'False': 'false',
+                 'True': 'true'
+        }
+        re_dict = {r'(\w+):': r'"\1":'}
+        print(text)
+        text = self.text_replacer.text_replace(text, text_dict)
+        text = self.text_replacer.text_re_substitute(text, re_dict)
+
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}\nProblematic text: {text}")
+            return None
 
 
     def update_book_pos(self, user_id, book_id, newpos):
@@ -51,72 +42,51 @@ class DbManager:
         query = f"""
             UPDATE user_books_test
             SET pos={newpos}
-            WHERE
-                userId={user_id}
-                AND bookId={book_id}
-            ;
+            WHERE userId={user_id} AND bookId={book_id};
         """
-        self.execute_query(query)
+        self.db_adapter.execute_query(query)
         return 0
 
     def update_current_book(self, user_id, book_id):
         # Update book currently reading by user
         query = f"""
             UPSERT INTO user_books_test
-            (
-                userId,
-                bookId,
-                isActive
-            )
+                (userId, bookId, isActive)
             VALUES
-            (
-                {user_id},
-                {book_id},
-                true
-            )
-        ;"""
-        self.execute_query(query)
+            ({user_id}, {book_id}, true);
+        """
+        self.db_adapter.execute_query(query)
         return 0
 
-    def update_auto_status(self, user_id):
+    def update_auto_status(self, user_id, new_status):
         # change status of auto-sending
         query = f"""
             UPSERT INTO users_test
-            (
-                userId,
-                isAutoSend
-            )
+                (userId, isAutoSend)
             VALUES
-            (
-                {user_id},
-                true
-        );"""
-        self.execute_query(query)
+                ({user_id}, {str(new_status)});
+        """
+        self.db_adapter.execute_query(query)
         return 0
 
-    def update_lang(self, user_id, lang):
+    def update_user_lang(self, user_id, lang):
         # change lang for user
         query = f"""
             UPSERT INTO users_test
-            (
-                userId,
-                lang
-            )
+                (userId,lang)
             VALUES
-            (
-                {user_id},
-                {lang}
-        );"""
-        self.execute_query(query)
+                ({user_id},"{lang}");
+        """
+        self.db_adapter.execute_query(query)
         return 0
 
     def get_current_book(self, user_id):
         # get current book of user
         query = f"""
             SELECT bookId, pos FROM user_books_test
-            WHERE userId = {user_id} AND isActive = true
-        ;"""
-        result = self.execute_query(query)
+            WHERE userId = {user_id} AND isActive = true;
+        """
+        result = self.db_adapter.execute_query(query)
         if len(result[0].rows) == 1:
             data = self._text_to_json(str(result[0].rows[0]))
             book_id = data['bookId']
@@ -131,10 +101,9 @@ class DbManager:
         # return status of auto-sending
         query = f"""
             SELECT isAutoSend FROM users_test
-            WHERE userId = {user_id}
-        ;
+            WHERE userId = {user_id};
         """
-        result = self.execute_query(query)
+        result = self.db_adapter.execute_query(query)
         if len(result[0].rows) == 1:
             data = self._text_to_json(str(result[0].rows[0]))
             return data['isAutoSend']
@@ -144,10 +113,10 @@ class DbManager:
         # Return all user's books
         query = f"""
             SELECT bookId FROM user_books_test
-            WHERE userId = {user_id}
-        ;"""
+            WHERE userId = {user_id};
+        """
 
-        result = self.execute_query(query)
+        result = self.db_adapter.execute_query(query)
 
         user_book_ids = []
 
@@ -161,30 +130,29 @@ class DbManager:
     def get_users_for_autosend(self):
         # Return all user with auto-sending ON
 
-        query = """
-        SELECT userId FROM users_test
-        WHERE isAutoSend = true
-        ;
+        query = f"""
+            SELECT userId FROM users_test
+            WHERE isAutoSend = true;
         """
-        result = execute_query(query)
+        result = self.db_adapter.execute_query(query)
 
         user_ids = []
 
         for row in result[0].rows:
-            data = text_to_json(str(result[0].rows[0]))
+            data = self._text_to_json(row)
             user_id = data['userId']
             user_ids.append(user_id)
 
-        return user_book_ids
+        return user_ids
 
-    def get_pos(self, user_id, book_id):
+    def get_book_pos(self, user_id, book_id):
         # Return pos value for user and book
         # def get_pos(self, user_id, book_name):
         query = f"""
             SELECT bookId, pos FROM user_books_test
-            WHERE userId = {user_id} AND bookId = book_id
-        ;"""
-        result = self.execute_query(query)
+            WHERE userId = {user_id} AND bookId = {book_id};
+        """
+        result = self.db_adapter.execute_query(query)
         if len(result[0].rows) == 1:
             data = self._text_to_json(str(result[0].rows[0]))
             book_id = data['bookId']
@@ -193,14 +161,14 @@ class DbManager:
         return -1
 
 
-    def get_lang(self, user_id):
+    def get_user_lang(self, user_id):
         # Return lang for user
         query = f"""
             SELECT lang FROM users_test
-            WHERE userId = {user_id}
-        ;"""
+            WHERE userId = {user_id};
+        """
 
-        result = self.execute_query(query)
+        result = self.db_adapter.execute_query(query)
 
         if len(result[0].rows) == 1:
             data = self._text_to_json(str(result[0].rows[0]))
