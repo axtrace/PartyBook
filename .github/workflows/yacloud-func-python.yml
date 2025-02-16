@@ -20,10 +20,13 @@ jobs:
         function-name: 'partybook-on-func'
         runtime: 'python312'
         memory: '256Mb'
-        entrypoint: 'main.handler'
+        entrypoint: 'index.handler'
+        service-account-id: ${{ secrets.SERVICE_ACCOUNT_ID }}
         environment: |
-          DEBUG=True
-          COUNT=1
+          PRODUCTION_TOKEN=${{ secrets.PRODUCTION_TOKEN }}
+          TEST_TOKEN=${{ secrets.TEST_TOKEN }}
+          YDB_DATABASE=${{ secrets.YDB_DATABASE }}
+          YDB_ENDPOINT=${{ secrets.YDB_ENDPOINT }}
         include: |
           **/*.py
           **/*.json
