@@ -14,6 +14,14 @@ s3 = boto3.client('s3',
     aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
 )
 
+def handler(event, context):
+    message = telebot.types.Update.de_json(event['body'])
+    bot.process_new_updates([message])
+    return {
+        'statusCode': 200,
+        'body': 'OK'
+    }
+
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
     try:
@@ -37,20 +45,13 @@ def handle_document(message):
         logger.error(f"File processing error: {e}")
 
 @bot.message_handler(content_types=['text'])
-def handler(event, context):
-
-    # Парсим входящее сообщение
-    update = telebot.types.Update.de_json(json.loads(event['body']))
+def handle_text(message):
 
     # Получаем идентификатор чата
-    chat_id = update.message.chat.id
+    chat_id = message.chat.id
 
     # Отправляем ответ "privet"
-    bot.send_message(chat_id, "privet-privet")
+    bot.reply_to(message, "privet-privet")
 
-    return {
-        'statusCode': 200,
-        'body': 'OK'
-    }
 
 
