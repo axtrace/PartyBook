@@ -29,14 +29,7 @@ class s3Adapter:
             return None
 
     def get_object(self, filename, decode: bool = True) -> bytes | str | None:
-        """
-        Читает файл из Object Storage
 
-        :param bucket: Имя бакета
-        :param key: Ключ объекта (путь к файлу)
-        :param decode: Декодировать в строку
-        :return: Содержимое файла или None при ошибке
-        """
         try:
             response = self._s3_.get_object(Bucket=bucket, Key=filename)
 

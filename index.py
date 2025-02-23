@@ -36,8 +36,7 @@ def handle_document(message):
             s3a.put_object(filename, body, mime_type)
             obj = s3a.get_object(filename, False)
 
-            bot.reply_to(message, "✅ Файл успешно загружен в S3")
-            bot.reply_to(message, obj )
+            bot.reply_to(message, "✅ Файл успешно загружен в S3" + obj)
         else:
             bot.reply_to(message, f"❌ Ошибка {response.status_code} при загрузке файла")
 
