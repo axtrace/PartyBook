@@ -2,6 +2,7 @@ import json
 import telebot
 import os
 import boto3
+import requests
 
 # Получаем токен бота из переменных окружения
 token = os.environ['TEST_TOKEN']
