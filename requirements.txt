@@ -1,5 +1,6 @@
 APScheduler
 beautifulsoup4
+boto3
 bs4
 certifi
 chardet
