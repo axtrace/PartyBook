@@ -10,6 +10,7 @@ class s3Adapter:
 
     def _init_s3_client_(self):
         return boto3.client(
+            service_name='s3',
             endpoint_url='https://storage.yandexcloud.net',
             aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
