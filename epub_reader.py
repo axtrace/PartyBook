@@ -13,8 +13,7 @@ class EpubReader():
             self.book = epub.read_epub(epub_path)
             self.spine_ids = self._get_spine_ids()
             self.item_ids = self._get_item_ids()
-            # sort list of docs ids in order they follow in spine_ids
-            self.item_ids.sort(key=self._sort_by_spine)
+            self.item_ids.sort(key=self._sort_by_spine) # sort list of docs ids in order they follow in spine_ids
         else:
             self.book = None
         pass

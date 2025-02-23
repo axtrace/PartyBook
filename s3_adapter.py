@@ -31,14 +31,14 @@ class s3Adapter:
     def get_object(self, filename, decode: bool = True) -> bytes | str | None:
 
         try:
-            response = self._s3_.get_object(Bucket=bucket, Key=filename)
+            response = self._s3_.get_object(Bucket= self._bucket_, Key=filename)
 
             if decode:
                 return response['Body'].read().decode('utf-8')
             return response['Body'].read()
 
         except s3.exceptions.NoSuchKey:
-            print(f"File {key} not found in bucket {bucket}")
+            print(f"File {key} not found in bucket {self._bucket_}")
         except Exception as e:
             print(f"Error accessing S3: {str(e)}")
         return None
