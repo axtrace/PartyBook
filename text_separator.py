@@ -4,9 +4,11 @@ from nltk.tokenize import sent_tokenize
 
 
 class TextSeparator(object):
-    """Split text to sentences, the way depends on mode value
+    """
+    Split text to sentences, the way depends on mode value
     If the mode is by_sense, bot try to make sentences even if they finished without a dot
-    Else the bot make sentences just only by newline symbols"""
+    Else the bot make sentences just only by newline symbols
+    """
 
     def __init__(self, in_text='', mode=''):
         """Constructor"""

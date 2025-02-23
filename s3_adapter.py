@@ -30,7 +30,6 @@ class s3Adapter:
             return None
 
     def get_object(self, filename, decode: bool = True) -> bytes | str | None:
-
         try:
             response = self.s3_client.get_object(Bucket= self._bucket_, Key=filename)
 

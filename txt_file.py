@@ -19,8 +19,7 @@ class TxtFile(object):
     def create_file(self, folder_for_save, book_title=''):
         try:
             if book_title == '':
-                self._txt_file_name = str(
-                    strftime("%Y-%m-%d_%H:%M:%S", gmtime())) + '.txt'
+                self._txt_file_name = str(strftime("%Y-%m-%d_%H:%M:%S", gmtime())) + '.txt'
             else:
                 self._txt_file_name = book_title + '.txt'
             file_path = os.path.join(folder_for_save, self._txt_file_name)

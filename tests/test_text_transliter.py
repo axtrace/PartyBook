@@ -11,19 +11,19 @@ class TestTextTransliter(unittest.TestCase):
 
     def test_empty_line(self):
         text = ''
-        result = TextTransliter(text, input_lang='ru').get_translitet()
+        result = TextTransliter(text, input_lang='ru').translite_text()
         self.assertEqual(result, '')
 
     # only digit string
     def test_digit_string(self):
         text = '0123456789'
-        result = TextTransliter(text, input_lang='ru').get_translitet()
+        result = TextTransliter(text, input_lang='ru').translite_text()
         self.assertEqual(result, '0123456789')
 
     # alphabet string
     def test_big_letter_sense(self):
         text = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя'
-        result = TextTransliter(text, input_lang='ru').get_translitet()
+        result = TextTransliter(text, input_lang='ru').translite_text()
         self.assertEqual(result,
                          'ABVGDEEZhZIJKLMNOPRSTUFHTsChShSch\'Y\'EJuJaabvgdeezhzijklmnoprstufhtschshsch\'y\'ejuja')
 

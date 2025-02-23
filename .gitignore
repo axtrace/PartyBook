@@ -160,10 +160,6 @@ ENV/
 # sqlite
 .sqlite
 
-# token file
-tokens.py
-
-
 # files folder
 files/
 

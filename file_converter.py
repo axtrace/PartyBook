@@ -1,4 +1,4 @@
-import logging
+
 import ebooklib
 import os
 
@@ -17,9 +17,8 @@ class FileConverter(object):
 
     def __init__(self, path_for_save=''):
         # db = database.DataBase()
-        logging.basicConfig(filename="sample.log", filemode="w",
-                            level=logging.ERROR)
-        logger = logging.getLogger("ex")
+        self.transliter = TextTransliter()
+        self.txt_adapter = TxtFile()
         if path_for_save != '':
             self._path_for_save = path_for_save
         else:
@@ -27,13 +26,14 @@ class FileConverter(object):
         pass
 
     def _make_filename(self, user_id='', book_title=''):
-        trans_title = TextTransliter(book_title).get_translitet()
+        trans_title = self.transliter.translite_text(book_title)
         trans_title = trans_title.replace(" ", "_").lower()
         filename = str(user_id) + '_' + trans_title
         return filename
 
     def save_file_as_txt(self, user_id, epub_path, sent_mode='by_sense'):
-        # put text of book from epub in new txt file. Return txt file name
+        # put text of book from epub in new txt file.
+        # Return txt file name
         book_reader = EpubReader(epub_path)
         txt_title = self._make_filename(user_id, book_reader.get_booktitle())
         txt_file = TxtFile()

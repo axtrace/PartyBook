@@ -6,27 +6,21 @@ from langdetect import detect
 class TextTransliter(object):
     # convert text from one alphabet to other.
 
-    def __init__(self, input_text='', input_lang=''):
-        try:
-            self._input_text = input_text
-            self._transliterate(input_lang)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
-        pass
+    def __init__(self):
+       pass
 
-    def _transliterate(self, input_lang):
+    def _transliterate(self, text, lang_from):
         # convert from russian to translit
         try:
-            if input_lang == '':
-                input_lang = detect(self._input_text)
-            if input_lang not in get_available_language_codes():
-                input_lang = 'ru'
-            self._output_text = translit(self._input_text, input_lang, reversed=True)
+            if lang_from == '':
+                lang_from = detect(text)
+            if lang_from not in get_available_language_codes():
+                lang_from = 'ru'
+            return translit(text, lang_from, reversed=True)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
         pass
 
-    def get_translitet(self):
-        return self._output_text
+    def translite_text(self, text, lang_from = ''):
+        return self._transliterate(text, lang_from)
