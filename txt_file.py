@@ -9,6 +9,7 @@ import config
 class TxtFile(object):
     """
     Class for write text in .txt file by sentences
+    and for read text from .txt file
     """
 
     def __init__(self):

@@ -165,3 +165,7 @@ files/
 
 # yED files
 .graphml
+
+.idea/ 
+.venv/
+.vscode/
