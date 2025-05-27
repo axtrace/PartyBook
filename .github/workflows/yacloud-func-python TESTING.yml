@@ -17,7 +17,7 @@ jobs:
       with:
         yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
         folder-id: ${{ secrets.FOLDER_ID }}
-        function-name: 'partybook-on-func'
+        function-name: 'partybook-on-func-testing'
         runtime: 'python312'
         memory: '256Mb'
         entrypoint: 'index.handler'
