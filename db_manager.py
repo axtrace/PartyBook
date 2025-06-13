@@ -40,16 +40,35 @@ class DbManager:
     def bool_to_str(self, value):
         return str(value).lower()
 
-    def update_book_pos(self, user_id, book_id, newpos):
-        # Update pos value for user and book
-        # to-do: think about DECLARE $userId AS Int64; DECLARE $userName AS Utf8;
-        query = f"""
-            UPDATE user_books_test
-            SET pos={newpos}
-            WHERE userId={user_id} AND bookId={book_id};
+    def _execute_safe_query(self, query, params=None):
         """
-        self.db_adapter.execute_query(query)
-        return 0
+        Безопасное выполнение запроса с параметрами
+        """
+        if params:
+            # Заменяем параметры в запросе
+            for key, value in params.items():
+                if isinstance(value, str):
+                    value = value.replace('"', '\\"')
+                query = query.replace(f"{{{key}}}", str(value))
+        
+        try:
+            result = self.db_adapter.execute_query(query)
+            return result
+        except Exception as e:
+            print(f"Error executing query: {str(e)}")
+            return None
+
+    def update_book_pos(self, user_id, book_id, newpos):
+        query = """
+            UPDATE user_books_test
+            SET pos = {newpos}
+            WHERE userId = {user_id} AND bookId = {book_id};
+        """
+        return self._execute_safe_query(query, {
+            'user_id': user_id,
+            'book_id': book_id,
+            'newpos': newpos
+        })
 
     def update_current_book(self, user_id, book_id):
         # Update book currently reading by user
@@ -86,25 +105,17 @@ class DbManager:
         return 0
 
     def get_current_book(self, user_id):
-        # get current book of user
-        query = f"""
-            SELECT ub.bookId as bookId, ub.pos as pos, bt.bookname as bookname
+        query = """
+            SELECT ub.bookId, bt.bookname, ub.pos 
             FROM user_books_test ub
             JOIN books_test bt ON ub.bookId = bt.id
-            WHERE ub.userId = {user_id} AND isActive = true;
+            WHERE ub.userId = {user_id} AND ub.isActive = true;
         """
-        result = self.db_adapter.execute_query(query)
-
-        if len(result[0].rows) == 1:
-            data = self._text_to_json(str(result[0].rows[0]))
-            book_id = data['bookId']
-            book_name = data['bookname']
-            pos = data['pos']
-            return book_id, book_name, pos
-        return None, None, None
-        # пример значения:
-        # "body": "{'bookId': 4, 'pos': 1482}\n"
-
+        result = self._execute_safe_query(query, {'user_id': user_id})
+        if not result or len(result[0].rows) == 0:
+            return None, None, None
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['bookId'], data['bookname'], data['pos']
 
     def get_auto_status(self, user_id):
         # return status of auto-sending
@@ -188,3 +199,50 @@ class DbManager:
             lang = data['lang']
             return lang
         return None
+
+    def save_chunk(self, book_id, chunk_id, text):
+        query = f"""
+            UPSERT INTO book_chunks
+                (bookId, chunkId, text)
+            VALUES
+            ({book_id}, {chunk_id}, "{text}");
+        """
+        self.db_adapter.execute_query(query)
+        return 0
+
+    def get_chunk(self, book_id, chunk_id):
+        query = """
+            SELECT text FROM book_chunks
+            WHERE bookId = {book_id} AND chunkId = {chunk_id};
+        """
+        result = self._execute_safe_query(query, {
+            'book_id': book_id,
+            'chunk_id': chunk_id
+        })
+        if not result or len(result[0].rows) == 0:
+            return None
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['text']
+
+    def get_total_chunks(self, book_id):
+        query = f"""
+            SELECT COUNT(*) as count FROM book_chunks
+            WHERE bookId = {book_id};
+        """
+        result = self.db_adapter.execute_query(query)
+        if len(result[0].rows) == 0:
+            return 0
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['count']
+
+    def get_or_create_book(self, book_name):
+        query = f"""
+            UPSERT INTO books_test
+                (bookname)
+            VALUES
+            ("{book_name}")
+            RETURNING id;
+        """
+        result = self.db_adapter.execute_query(query)
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['id']

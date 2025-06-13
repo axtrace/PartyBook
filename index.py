@@ -5,8 +5,8 @@ import boto3
 import requests
 import s3_adapter
 
-# Получаем токен бота из переменных окружения
-token = os.environ['TEST_TOKEN']
+# Получаем токен бота из переменных окружения (для тестирования или для продакшена)
+token = os.environ['TOKEN']
 
 bot = telebot.TeleBot(token)
 
