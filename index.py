@@ -20,26 +20,38 @@ def handler(event, context):
         'body': 'OK'
     }
 
+@bot.message_handler(commands=['more'])
+def more_handler(message):
+    try:
+        bot.reply_to(message, "more")
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+@bot.message_handler(commands=['help'])
+def help_handler(message):
+    try:
+        bot.reply_to(message, "help")
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+@bot.message_handler(commands=['now_reading'])
+def now_reading_handler(message):
+    try:
+        bot.reply_to(message, "now_reading")
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+@bot.message_handler(commands=['poem_mode'])
+def poem_mode_handler(message):
+    try:
+        bot.reply_to(message, "poem_mode")
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
     try:
-        file_info = bot.get_file(message.document.file_id)
-        file_url = bot.get_file_url(file_info.file_id)
-
-        response = requests.get(file_url)
-
-        if response.ok:
-            filename = message.document.file_name
-            mime_type = message.document.mime_type
-            body = response.content
-
-            s3a.put_object(filename, body, mime_type)
-            obj = s3a.get_object(filename)
-
-            bot.reply_to(message, f"✅ Файл {str(obj)} успешно загружен в S3")
-        else:
-            bot.reply_to(message, f"❌ Ошибка {response.status_code} при загрузке файла")
-
+        bot.reply_to(message, "document")
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
