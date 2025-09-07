@@ -112,3 +112,34 @@ def handle_text(message):
         bot.reply_to(message, "privet-privet", reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+def send_portion(user_id, chat_id):
+    try:
+        bot.send_chat_action(chat_id, 'typing')
+        lang = books_library.get_lang(user_id)
+        msg = book_reader.get_next_portion(user_id)
+        
+        if msg is None:
+            msg = config.error_user_finding[lang]
+            bot.send_message(chat_id, msg)
+            return -1
+            
+        if book_finished(msg):
+            finished_text = config.message_book_finished[lang]
+            msg += f"\n{finished_text}\n/start_auto\n/my_books"
+            turn_off_autostatus(user_id, chat_id)
+        else:
+            msg += '\n/more'
+            
+        # Отправляем сообщение
+        # При этом разбиваем сообщение на части, если оно слишком большое
+        max_telegram_size = 4096
+        while len(msg) > 0:
+            chunk = msg[:max_telegram_size]
+            bot.send_message(chat_id, chunk, reply_markup=markup([]))
+            msg = msg[max_telegram_size:]
+            
+        return 0
+    except Exception as e:
+        bot.send_message(chat_id, f"Error: {str(e)}")
+        return -1

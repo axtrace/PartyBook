@@ -169,3 +169,7 @@ files/
 .idea/ 
 .venv/
 .vscode/
+
+
+# DB scheme
+db_desc.txt
