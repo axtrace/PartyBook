@@ -20,9 +20,9 @@ jobs:
         function-name: 'partybook-on-func-testing'
         runtime: 'python312'
         memory: '256Mb'
-        entrypoint: 'index.handler'
+        entrypoint: 'app.index.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
-        source-root: './app'
+        source-root: '.'
         environment: |
           TOKEN=${{ secrets.TEST_TOKEN }}
           YDB_DATABASE=${{ secrets.YDB_DATABASE_TEST }}
