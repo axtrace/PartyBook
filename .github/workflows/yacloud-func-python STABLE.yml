@@ -19,6 +19,7 @@ jobs:
         memory: '256Mb'
         entrypoint: 'index.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
+        source-root: './app'        
         environment: |
           TOKEN=${{ secrets.PRODUCTION_TOKEN }}
           YDB_DATABASE=${{ secrets.YDB_DATABASE }}
