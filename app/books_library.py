@@ -2,10 +2,8 @@
 import sys
 import os
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import db_manager
-import text_replacer
+from db_manager import DbManager
 from text_replacer import TextReplacer
-
 
 class BooksLibrary(object):
     """
@@ -14,7 +12,7 @@ class BooksLibrary(object):
     """
 
     def __init__(self):
-        self.db = db_manager.DbManager()
+        self.db = DbManager()
         self.lang_cache = {}
         self.text_replacer = TextReplacer()
 
@@ -64,12 +62,12 @@ class BooksLibrary(object):
         return self.db.get_users_for_autosend()
 
     def get_current_book(self, user_id, is_format_name_needed=False):
-        book_id, book_name, pos = self.db.get_current_book(user_id)
+        book_id, book_name, pos, mode = self.db.get_current_book(user_id)
         if book_name is None:
             return -1, -1, -1
         if is_format_name_needed:
             book_name = self._format_name(book_name, user_id)
-        return book_id, book_name, pos
+        return book_id, book_name, pos, mode
 
     def _format_name(self, file_name, user_id):
         # Just del user_id and .txt from file_name

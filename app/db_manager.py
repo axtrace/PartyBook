@@ -2,16 +2,16 @@ import json
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import ydb_adapter
-import text_replacer
+from ydb_adapter import YdbAdapter
+from text_replacer import TextReplacer
 
 
 class DbManager:
     """interaction with DB, preparing requests and sending to execute"""
 
     def __init__(self):
-        self.db_adapter = ydb_adapter.YdbAdapter()
-        self.text_replacer = text_replacer.TextReplacer()
+        self.db_adapter = YdbAdapter()
+        self.text_replacer = TextReplacer()
 
     def _text_to_json(self, text):
         if not isinstance(text, str):
@@ -60,7 +60,7 @@ class DbManager:
 
     def update_book_pos(self, user_id, book_id, newpos):
         query = """
-            UPDATE user_books_test
+            UPDATE user_books
             SET pos = {newpos}
             WHERE userId = {user_id} AND bookId = {book_id};
         """
@@ -71,21 +71,29 @@ class DbManager:
         })
 
     def update_current_book(self, user_id, book_id):
-        # Update book currently reading by user
-        query = f"""
-            UPSERT INTO user_books_test
+        # Деактивируем предыдущую активную книгу пользователя
+        deactivate_query = f"""
+            UPDATE user_books
+            SET isActive = false
+            WHERE userId = {user_id} AND isActive = true;
+        """
+        self.db_adapter.execute_query(deactivate_query)
+
+        # Активируем новую книгу
+        activate_query = f"""
+            UPSERT INTO user_books
                 (userId, bookId, isActive)
             VALUES
-            ({user_id}, {book_id}, true);
+                ({user_id}, {book_id}, true);
         """
-        self.db_adapter.execute_query(query)
+        self.db_adapter.execute_query(activate_query)
         return 0
 
     def update_auto_status(self, user_id, status_to):
         # change status of auto-sending
         new_status = self.bool_to_str(status_to)
         query = f"""
-            UPSERT INTO users_test
+            UPSERT INTO users
                 (userId, isAutoSend)
             VALUES
                 ({user_id}, {new_status});
@@ -96,7 +104,7 @@ class DbManager:
     def update_user_lang(self, user_id, lang):
         # change lang for user
         query = f"""
-            UPSERT INTO users_test
+            UPSERT INTO users
                 (userId,lang)
             VALUES
                 ({user_id},"{lang}");
@@ -105,22 +113,25 @@ class DbManager:
         return 0
 
     def get_current_book(self, user_id):
+        # todo: переделать на параметризованный запрос (везде)
         query = """
-            SELECT ub.bookId, bt.bookname, ub.pos 
-            FROM user_books_test ub
-            JOIN books_test bt ON ub.bookId = bt.id
-            WHERE ub.userId = {user_id} AND ub.isActive = true;
+            SELECT ub.bookId, b.bookname, ub.pos, ub.mode 
+            FROM user_books ub
+            JOIN books b ON ub.bookId = b.id
+            WHERE ub.userId = {user_id} 
+            AND ub.isActive = true;
         """
         result = self._execute_safe_query(query, {'user_id': user_id})
         if not result or len(result[0].rows) == 0:
             return None, None, None
         data = self._text_to_json(str(result[0].rows[0]))
-        return data['bookId'], data['bookname'], data['pos']
+        # todo: перед возвратом сделать модель Book
+        return data['bookId'], data['bookname'], data['pos'], data['mode']
 
     def get_auto_status(self, user_id):
         # return status of auto-sending
         query = f"""
-            SELECT isAutoSend FROM users_test
+            SELECT isAutoSend FROM users
             WHERE userId = {user_id};
         """
         result = self.db_adapter.execute_query(query)
@@ -134,7 +145,7 @@ class DbManager:
         # Return all user's books
         query = f"""
             SELECT ub.bookId as bookId, bt.bookname as bookname
-            FROM user_books_test ub
+            FROM user_books ub
             JOIN books_test bt ON ub.bookId = bt.id
             WHERE ub.userId = {user_id};
         """
@@ -155,7 +166,7 @@ class DbManager:
         # Return all user with auto-sending ON
 
         query = f"""
-            SELECT userId FROM users_test
+            SELECT userId FROM users
             WHERE isAutoSend = true;
         """
         result = self.db_adapter.execute_query(query)
@@ -173,22 +184,22 @@ class DbManager:
         # Return pos value for user and book
         # def get_pos(self, user_id, book_name):
         query = f"""
-            SELECT bookId, pos FROM user_books_test
+            SELECT bookId, pos FROM user_books
             WHERE userId = {user_id} AND bookId = {book_id};
         """
         result = self.db_adapter.execute_query(query)
         if len(result[0].rows) == 1:
             data = self._text_to_json(str(result[0].rows[0]))
             book_id = data['bookId']
-            pos = data['pos']
-            return book_id, pos
+            book_pos = data['pos']
+            return book_id, book_pos
         return -1
 
 
     def get_user_lang(self, user_id):
         # Return lang for user
         query = f"""
-            SELECT lang FROM users_test
+            SELECT lang FROM users
             WHERE userId = {user_id};
         """
 
@@ -237,7 +248,7 @@ class DbManager:
 
     def get_or_create_book(self, book_name):
         query = f"""
-            UPSERT INTO books_test
+            UPSERT INTO books
                 (bookname)
             VALUES
             ("{book_name}")

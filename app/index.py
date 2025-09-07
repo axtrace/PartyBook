@@ -4,6 +4,10 @@ import os
 import boto3
 import requests
 import s3_adapter
+import config
+from book_reader import BookReader
+from books_library import BooksLibrary
+from app.models import User, Book
 
 # Получаем токен бота из переменных окружения (для тестирования или для продакшена)
 token = os.environ['TOKEN']
@@ -11,6 +15,8 @@ token = os.environ['TOKEN']
 bot = telebot.TeleBot(token)
 
 s3a = s3_adapter.s3Adapter()
+book_reader = BookReader()
+books_library = BooksLibrary()
 
 # Список команд для клавиатуры
 commands = ['/help', '/more', '/my_books', '/auto_status', '/now_reading',
@@ -46,7 +52,9 @@ def start_handler(message):
 @bot.message_handler(commands=['more'])
 def more_handler(message):
     try:
-        bot.reply_to(message, "more", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        send_portion(user_id, chat_id)
+        # bot.reply_to(message, "more", reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -113,10 +121,28 @@ def handle_text(message):
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
+
+def book_finished(portion):
+    if config.end_book_string in portion:
+        return True
+    if portion == '/more':
+        return True
+    return False
+
+def turn_off_autostatus(user_id, chat_id):
+    # turn off autostatus if book was finished
+    if books_library.get_auto_status(user_id):
+        books_library.switch_auto_status(user_id)
+        lang = books_library.get_lang(user_id)
+        auto_off_msg = config.message_everyday_OFF[lang]
+        user_markup = markup(['/start_auto', '/my_books'])
+        bot.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
+
+
 def send_portion(user_id, chat_id):
     try:
         bot.send_chat_action(chat_id, 'typing')
-        lang = books_library.get_lang(user_id)
+        lang = books_library.get_lang(user_id) # todo: перейти на модель User.lang
         msg = book_reader.get_next_portion(user_id)
         
         if msg is None:
