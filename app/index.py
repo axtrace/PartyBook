@@ -4,11 +4,10 @@ import os
 import boto3
 import requests
 import config
-
-from app import s3_adapter
-from app import BookReader
-from app import BooksLibrary
-from app.models import User, Book
+from . import s3_adapter
+from book_reader import BookReader
+from books_library import BooksLibrary
+from models import User, Book
 
 # Получаем токен бота из переменных окружения (для тестирования или для продакшена)
 token = os.environ['TOKEN']

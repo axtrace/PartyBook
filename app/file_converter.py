@@ -3,10 +3,10 @@ import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup as bs
 import config
-import db_manager
-from text_transliter import TextTransliter
-from txt_file import BookChunkManager
-from epub_reader import EpubReader
+from .db_manager import DbManager
+from .text_transliter import TextTransliter
+from .txt_file import BookChunkManager
+from .epub_reader import EpubReader
 
 class FileConverter(object):
     """convert file from epub to chunks in YDB"""

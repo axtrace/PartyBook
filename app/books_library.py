@@ -1,9 +1,7 @@
-# from db_manager import *
 import sys
 import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from db_manager import DbManager
-from text_replacer import TextReplacer
+from .db_manager import DbManager
+from .text_replacer import TextReplacer
 
 class BooksLibrary(object):
     """

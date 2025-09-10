@@ -1,3 +1,4 @@
+from . import s3_adapter
 from .s3_adapter import s3Adapter
 from .book_reader import BookReader
 from .books_library import BooksLibrary

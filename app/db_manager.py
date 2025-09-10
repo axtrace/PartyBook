@@ -1,9 +1,8 @@
 import json
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ydb_adapter import YdbAdapter
-from text_replacer import TextReplacer
+from .ydb_adapter import YdbAdapter
+from .text_replacer import TextReplacer
 
 
 class DbManager:
