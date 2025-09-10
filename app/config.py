@@ -4,16 +4,9 @@ import json
 # Ищем config.json относительно расположения config.py
 config_path = os.path.join(os.path.dirname(__file__), "config.json")
 
-# Отладочная информация
-print(f"Looking for config.json at: {config_path}")
-print(f"Current working directory: {os.getcwd()}")
-print(f"Files in current directory: {os.listdir('.')}")
-print(f"Files in config directory: {os.listdir(os.path.dirname(__file__))}")
-
 try:
     with open(config_path, "r", encoding='utf-8') as f:
         cfg = json.loads(f.read())
-        print("Successfully loaded config.json")
 except FileNotFoundError:
     print(f"Warning: config.json not found at {config_path}")
     # Fallback значения по умолчанию
@@ -105,6 +98,18 @@ piece_size = 893  # 384 get approximately, for comfortable reading on smartphone
 max_msg_size = 4096 # restriction from telegram
 
 end_book_string = '---THE END---'
+
+# Создаем объект config для совместимости с импортом
+class Config:
+    def __init__(self, cfg_dict):
+        for key, value in cfg_dict.items():
+            setattr(self, key, value)
+    
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+# Создаем экземпляр config
+config = Config(cfg)
 
 message_file_added = cfg.get('message_file_added', '')
 message_success_start = cfg.get('message_success_start', '')
