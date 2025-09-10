@@ -3,7 +3,7 @@ import telebot
 import os
 import boto3
 import requests
-import config
+from . import config
 from . import s3_adapter
 from book_reader import BookReader
 from books_library import BooksLibrary

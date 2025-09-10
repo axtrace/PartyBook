@@ -1,5 +1,5 @@
 import os
-import config
+from . import config
 from .books_library import BooksLibrary
 from .txt_file import BookChunkManager
 

@@ -2,7 +2,7 @@ import os
 import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup as bs
-import config
+from . import config
 from .db_manager import DbManager
 from .text_transliter import TextTransliter
 from .txt_file import BookChunkManager
