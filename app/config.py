@@ -1,8 +1,104 @@
 import os
 import json
 
-f = open("config.json", "r", encoding='utf-8')
-cfg = json.loads(f.read())
+# Ищем config.json относительно расположения config.py
+config_path = os.path.join(os.path.dirname(__file__), "config.json")
+
+# Отладочная информация
+print(f"Looking for config.json at: {config_path}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Files in current directory: {os.listdir('.')}")
+print(f"Files in config directory: {os.listdir(os.path.dirname(__file__))}")
+
+try:
+    with open(config_path, "r", encoding='utf-8') as f:
+        cfg = json.loads(f.read())
+        print("Successfully loaded config.json")
+except FileNotFoundError:
+    print(f"Warning: config.json not found at {config_path}")
+    # Fallback значения по умолчанию
+    cfg = {
+        "message_success_start": {
+            "ru": "Привет! Я бот для чтения книг.",
+            "en": "Hello! I am a book reading bot."
+        },
+        "message_file_added": {
+            "ru": "Файл успешно добавлен!",
+            "en": "File added successfully!"
+        },
+        "error_file_type": {
+            "ru": "Ошибка! Принимаю только файлы .epub",
+            "en": "Error! Only .epub files allowed"
+        },
+        "error_file_adding_failed": {
+            "ru": "Ошибка! Не удалось сохранить файл.",
+            "en": "Error! Failed to save file."
+        },
+        "error_current_book": {
+            "ru": "Я не знаю такой книги",
+            "en": "I do not know your current book"
+        },
+        "error_book_recognition": {
+            "ru": "Ошибка! Я не распознал имя книги.",
+            "en": "Error! I do not recognize this book name."
+        },
+        "error_user_finding": {
+            "ru": "Извините, не узнаю вас. Начните с команды /start",
+            "en": "Sorry, did not find you. Try command /start"
+        },
+        "error_lang_recognition": {
+            "ru": "Извините, такой язык недоступен.",
+            "en": "Sorry, did not recognize this language."
+        },
+        "message_everyday_ON": {
+            "ru": "Ежедневная рассылка включена.",
+            "en": "Everyday auto send is ON."
+        },
+        "message_everyday_OFF": {
+            "ru": "Ежедневная рассылка выключена.",
+            "en": "Everyday auto send is OFF."
+        },
+        "message_poem_mode_ON": {
+            "ru": "Режим стихов включен.",
+            "en": "Poem mode is ON."
+        },
+        "message_poem_mode_OFF": {
+            "ru": "Режим стихов выключен.",
+            "en": "Poem mode is OFF."
+        },
+        "message_book_finished": {
+            "ru": "Поздравляю! Книга окончена.",
+            "en": "Congratulations! The book is finished."
+        },
+        "message_dont_understand": {
+            "ru": "Я не понял команду.",
+            "en": "I do not understand this command."
+        },
+        "message_lang_changed": {
+            "ru": "Язык успешно изменен.",
+            "en": "Language has been changed."
+        },
+        "message_now_reading": {
+            "ru": "Сейчас вы читаете: {}.",
+            "en": "Now you are reading: {}."
+        },
+        "message_booklist": {
+            "ru": "Список ваших книг:",
+            "en": "Your books list:"
+        },
+        "message_choose_book": {
+            "ru": "Выберите книгу для чтения",
+            "en": "Choose the book for start reading"
+        },
+        "message_help": {
+            "ru": "Я бот для чтения книг. Используйте /more для чтения.",
+            "en": "I am bot for reading books. Use /more to read."
+        },
+        "message_empty_booklist": {
+            "ru": "Список книг пуст",
+            "en": "Your book list is empty"
+        }
+    }
 
 path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
 piece_size = 893  # 384 get approximately, for comfortable reading on smartphone
