@@ -18,6 +18,25 @@ class DbManager:
         if not isinstance(text, str):
             return text
 
+        # Проверяем, если это уже Python словарь (repr format)
+        if text.startswith('{') and text.endswith('}'):
+            try:
+                # Пытаемся распарсить как Python литерал
+                result = ast.literal_eval(text)
+                # Обрабатываем bytes объекты в результате
+                if isinstance(result, dict):
+                    processed_result = {}
+                    for key, value in result.items():
+                        if isinstance(value, bytes):
+                            # Декодируем bytes в строку
+                            processed_result[key] = value.decode('utf-8', errors='ignore')
+                        else:
+                            processed_result[key] = value
+                    return processed_result
+                return result
+            except (ValueError, SyntaxError):
+                pass
+
         # Универсальный подход - обрабатываем все проблемные символы пошагово
         
         # 1. Сначала экранируем все кавычки в строковых значениях
