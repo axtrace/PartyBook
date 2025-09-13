@@ -19,7 +19,7 @@ class BookReader():
         try:
             # Получаем информацию о текущей книге пользователя
             book_id, book_name, pos, mode = self.books_lib.get_current_book(user_id)
-            if book_name == -1: 
+            if book_id is None or book_name is None: 
                 return None
 
             # Получаем следующий чанк текста

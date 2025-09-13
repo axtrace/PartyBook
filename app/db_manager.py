@@ -23,7 +23,7 @@ class DbManager:
                  'False': 'false',
                  'True': 'true'
         }
-        re_dict = {r'(\w+):': r'"\1":'}
+        re_dict = {r'([a-zA-Z_][a-zA-Z0-9_.]*):': r'"\1":'}
         text = self.text_replacer.text_replace(text, text_dict)
         text = self.text_replacer.text_re_substitute(text, re_dict)
 
