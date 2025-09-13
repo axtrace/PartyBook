@@ -7,8 +7,8 @@ class YdbAdapter:
     """connection to YDB"""
 
     def __init__(self):
-        self._driver = None
-        self._pool = None
+        self.driver = None
+        self.pool = None
 
     def _ensure_connected(self):
         if self.driver:
