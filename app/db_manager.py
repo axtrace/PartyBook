@@ -171,8 +171,9 @@ class DbManager:
             AND ub.isActive = true;
         """
         result = self._execute_safe_query(query, {'user_id': user_id})
+        print(f"get_current_book. result: {result}")
         if not result or len(result[0].rows) == 0:
-            return None, None, None
+            return None, None, None, None
         data = self._text_to_json(str(result[0].rows[0]))
         # todo: перед возвратом сделать модель Book
         return data['ub.bookId'], data['b.bookName'], data['ub.pos'], data['ub.mode']

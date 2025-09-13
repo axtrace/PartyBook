@@ -60,9 +60,11 @@ class BooksLibrary(object):
         return self.db.get_users_for_autosend()
 
     def get_current_book(self, user_id, is_format_name_needed=False):
+        print(f"get_current_book. user_id: {user_id}, is_format_name_needed: {is_format_name_needed}")
         book_id, book_name, pos, mode = self.db.get_current_book(user_id)
+        print(f"get_current_book. book_id: {book_id}, book_name: {book_name}, pos: {pos}, mode: {mode}")
         if book_name is None:
-            return -1, -1, -1
+            return -1, -1, -1, -1
         if is_format_name_needed:
             book_name = self._format_name(book_name, user_id)
         return book_id, book_name, pos, mode
