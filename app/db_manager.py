@@ -114,7 +114,7 @@ class DbManager:
     def get_current_book(self, user_id):
         # todo: переделать на параметризованный запрос (везде)
         query = """
-            SELECT ub.bookId, b.bookname, ub.pos, ub.mode 
+            SELECT ub.bookId, b.bookName, ub.pos, ub.mode 
             FROM user_books ub
             JOIN books b ON ub.bookId = b.id
             WHERE ub.userId = {user_id} 
@@ -125,7 +125,7 @@ class DbManager:
             return None, None, None
         data = self._text_to_json(str(result[0].rows[0]))
         # todo: перед возвратом сделать модель Book
-        return data['bookId'], data['bookname'], data['pos'], data['mode']
+        return data['bookId'], data['bookName'], data['pos'], data['mode']
 
     def get_auto_status(self, user_id):
         # return status of auto-sending
@@ -143,9 +143,9 @@ class DbManager:
     def get_user_books(self, user_id):
         # Return all user's books
         query = f"""
-            SELECT ub.bookId as bookId, bt.bookname as bookname
+            SELECT ub.bookId as bookId, b.bookName as bookName
             FROM user_books ub
-            JOIN books_test bt ON ub.bookId = bt.id
+            JOIN books b ON ub.bookId = b.id
             WHERE ub.userId = {user_id};
         """
 
@@ -156,7 +156,7 @@ class DbManager:
         for row in result[0].rows:
             data = self._text_to_json(str(row[0]))
             book_id = data['bookId']
-            book_name = data['bookname']
+            book_name = data['bookName']
             user_books.append({book_id: book_name})
 
         return user_books
@@ -248,7 +248,7 @@ class DbManager:
     def get_or_create_book(self, book_name):
         query = f"""
             UPSERT INTO books
-                (bookname)
+                (bookName)
             VALUES
             ("{book_name}")
             RETURNING id;
