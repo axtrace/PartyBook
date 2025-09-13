@@ -1,6 +1,4 @@
 import json
-import re
-import ast
 import sys
 import os
 from .ydb_adapter import YdbAdapter
@@ -18,51 +16,22 @@ class DbManager:
         if not isinstance(text, str):
             return text
 
-        # Универсальный подход - обрабатываем все проблемные символы пошагово
-        
-        # 1. Сначала экранируем все кавычки в строковых значениях
-        # Ищем паттерн: "key": "value"with"quotes"inside"
-        # Заменяем на: "key": "value\"with\"quotes\"inside"
-        
-        def fix_quotes_in_strings(match):
-            key = match.group(1)
-            value = match.group(2)
-            # Экранируем все кавычки внутри значения
-            escaped_value = value.replace('"', '\\"')
-            return f'"{key}": "{escaped_value}"'
-        
-        # Ищем строки вида: "key": "value"with"quotes"
-        fixed_text = re.sub(r'"([^"]+)":\s*"([^"]*)"([^"]*)"', fix_quotes_in_strings, text)
-        
-        # 2. Экранируем контрольные символы
-        fixed_text = fixed_text.replace('\n', '\\n')
-        fixed_text = fixed_text.replace('\r', '\\r')
-        fixed_text = fixed_text.replace('\t', '\\t')
-        fixed_text = fixed_text.replace('\x00', '\\u0000')
-        
-        # 3. Обрабатываем остальные замены
-        fixed_text = fixed_text.replace("'", '"')
-        fixed_text = fixed_text.replace('True', 'true')
-        fixed_text = fixed_text.replace('False', 'false')
-        fixed_text = fixed_text.replace('None', 'null')
-
-        # 4. Добавляем кавычки вокруг ключей, если они не заключены в кавычки
-        fixed_text = re.sub(r'([a-zA-Z_][a-zA-Z0-9_.]*):', r'"\1":', fixed_text)
+        text_dict = {
+                 "'": '"',
+                 'b"': '"',
+                 '\n': '',
+                 'False': 'false',
+                 'True': 'true'
+        }
+        re_dict = {r'([a-zA-Z_][a-zA-Z0-9_.]*):': r'"\1":'}
+        text = self.text_replacer.text_replace(text, text_dict)
+        text = self.text_replacer.text_re_substitute(text, re_dict)
 
         try:
-            return json.loads(fixed_text)
+            return json.loads(text)
         except json.JSONDecodeError as e:
-            print(f"Error decoding JSON: {e}")
-            print(f"Problematic text: {text}")
-            print(f"Fixed text: {fixed_text}")
-            
-            # Fallback к ast.literal_eval если JSON парсинг не удался
-            try:
-                ast_text = fixed_text.replace('"', "'")
-                return ast.literal_eval(ast_text)
-            except (ValueError, SyntaxError) as ast_e:
-                print(f"ast.literal_eval also failed: {ast_e}")
-                return None
+            print(f"Error decoding JSON: {e}\nProblematic text: {text}")
+            return None
 
     def str_to_bool(self, value):
         return value.lower() in ('true', 't', 'yes', 'y', '1')
