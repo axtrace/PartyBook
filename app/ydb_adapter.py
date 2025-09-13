@@ -7,20 +7,25 @@ class YdbAdapter:
     """connection to YDB"""
 
     def __init__(self):
-        # Create driver in global space.
-        driver = ydb.Driver(
-            endpoint=os.getenv('YDB_ENDPOINT'),
+        self._driver = None
+        self._pool = None
+
+    def _ensure_connected(self):
+        if self.driver:
+            return
+        self.driver = ydb.Driver(
+            endpoint=os.getenv('YDB_ENDPOINT').rstrip('/'),
             database=os.getenv('YDB_DATABASE'),
             # credentials=ydb.iam.MetadataUrlCredentials(),
             # root_certificates=ydb.load_ydb_root_certificate()
             credentials=ydb.AccessTokenCredentials(os.getenv('YDB_SERVICE_ACCOUNT_TOKEN'))
         )
-
+        
         # Wait for the driver to become active for requests.
-        driver.wait(fail_fast=True, timeout=5)
+        self.driver.wait(fail_fast=True, timeout=5)
 
         # Create the session pool instance to manage YDB sessions.
-        self.pool = ydb.SessionPool(driver)
+        self.pool = ydb.SessionPool(self.driver)
 
     def _run_transaction(self, session, query):
         # Create the transaction and execute query.
@@ -31,6 +36,7 @@ class YdbAdapter:
         )
 
     def execute_query(self, query):
+        self._ensure_connected()
         result = self.pool.retry_operation_sync(
             lambda session: self._run_transaction(session, query))
         return result
