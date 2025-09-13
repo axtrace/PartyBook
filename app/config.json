@@ -79,5 +79,8 @@
   "message_empty_booklist": {
     "ru": "Список книг пуст\n",
     "en": "Your book list is empty\n"
-  }
+  },
+
+  "end_book_string": "---THE END---"
+
 }
