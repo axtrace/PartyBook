@@ -175,7 +175,7 @@ class DbManager:
             return None, None, None
         data = self._text_to_json(str(result[0].rows[0]))
         # todo: перед возвратом сделать модель Book
-        return data['bookId'], data['bookName'], data['pos'], data['mode']
+        return data['ub.bookId'], data['b.bookName'], data['ub.pos'], data['ub.mode']
 
     def get_auto_status(self, user_id):
         # return status of auto-sending

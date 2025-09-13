@@ -150,7 +150,7 @@ def process_change_book(message):
         books_list = books_library.get_user_books(user_id)
         if new_book in books_list:
             books_library.update_current_book(user_id, chat_id, new_book)
-            book_id, book_name, pos = books_library.get_current_book(user_id, is_format_name_needed=True)
+            book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
             msg = config.message_now_reading[lang].format(book_name)
             bot.send_message(chat_id, msg,
                             reply_markup=markup(['/more', '/help']))
@@ -205,7 +205,7 @@ def now_reading_handler(message):
 def now_reading_answer(user_id):
     # prepare answer for now reading.
     # If no info, returns error message from config
-    book_name = books_library.get_current_book(user_id, format_name=True)
+    book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
     if book_name == -1:
         lang = books_library.get_lang(user_id)
         return config.error_current_book[lang]
