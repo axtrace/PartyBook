@@ -45,9 +45,13 @@ def handler(event, context):
 @bot.message_handler(commands=['start'])
 def start_handler(message):
     try:
-        bot.reply_to(message, "start", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
+        msg = config.message_success_start[lang]
+        bot.send_message(chat_id, msg,
+                        reply_markup=markup(['/poem_mode', '/help']))
     except Exception as e:
-        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+        bot.reply_to(message, e)
 
 @bot.message_handler(commands=['more'])
 def more_handler(message):
@@ -157,13 +161,10 @@ def send_portion(user_id, chat_id):
         else:
             msg += '\n/more'
             
-        # Отправляем сообщение
-        # При этом разбиваем сообщение на части, если оно слишком большое
+        # Отправляем сообщение. Если сообщение слишком длинное — делим на части
         max_telegram_size = 4096
-        while len(msg) > 0:
-            chunk = msg[:max_telegram_size]
-            bot.send_message(chat_id, chunk, reply_markup=markup([]))
-            msg = msg[max_telegram_size:]
+        for i in range(0, len(msg), max_telegram_size):
+            bot.send_message(chat_id, msg[i:i+max_telegram_size], reply_markup=markup([]))
             
         return 0
     except Exception as e:
