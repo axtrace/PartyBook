@@ -20,7 +20,7 @@ jobs:
         function-name: 'partybook-on-func-testing'
         runtime: 'python312'
         memory: '256Mb'
-        entrypoint: 'app.index.handler'
+        entrypoint: 'index.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'
         environment: |
