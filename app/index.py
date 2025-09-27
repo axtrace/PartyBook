@@ -77,7 +77,12 @@ def help_handler(message):
 @bot.message_handler(commands=['my_books'])
 def my_books_handler(message):
     try:
-        bot.reply_to(message, "my_books", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        bot.send_chat_action(chat_id, 'typing')
+        books_list = books_library.get_user_books(user_id)
+        msg, user_markup = books_list_message(books_list, user_id)
+        bot.send_message(chat_id, msg, reply_markup=user_markup)
+        bot.register_next_step_handler(message, process_change_book)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -175,3 +180,39 @@ def send_portion(user_id, chat_id):
     except Exception as e:
         bot.send_message(chat_id, f"Error: {str(e)}")
         return -1
+
+
+def books_list_message(books_list, user_id):
+    # prepare message and keyboard by list of user's books
+    lang = books_library.get_lang(user_id)
+    if len(books_list) == 0:
+        msg = config.message_empty_booklist[lang]
+        return msg, markup(['/help'])
+    msg = str(config.message_booklist[lang])
+    markup_list = []
+    for book in books_list:
+        msg += '\t' + str(book).replace(str(user_id) + '_', '') + '\n'
+        markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
+    msg += str(config.message_choose_book[lang])
+    return msg, markup(markup_list)
+
+
+def process_change_book(message):
+    try:
+        user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
+        new_book = message.text.replace('/', '')
+        new_book = str(user_id) + '_' + new_book
+        bot.send_chat_action(chat_id, 'typing')
+        books_list = books_library.get_user_books(user_id)
+        if new_book in books_list:
+            books_library.update_current_book(user_id, chat_id, new_book)
+            book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
+            msg = config.message_now_reading[lang].format(book_name)
+            bot.send_message(chat_id, msg,
+                            reply_markup=markup(['/more', '/help']))
+        else:
+            msg = config.error_book_recognition[lang]
+            bot.send_message(chat_id, msg)
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
