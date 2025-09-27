@@ -3,8 +3,8 @@ import re
 import ast
 import sys
 import os
-from .ydb_adapter import YdbAdapter
-from .text_replacer import TextReplacer
+from ydb_adapter import YdbAdapter
+from text_replacer import TextReplacer
 
 
 class DbManager:

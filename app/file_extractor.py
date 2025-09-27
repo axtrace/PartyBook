@@ -1,5 +1,5 @@
 import os
-from .text_transliter import *
+from text_transliter import *
 
 
 class FileExtractor(object):

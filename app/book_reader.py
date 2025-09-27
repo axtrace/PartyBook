@@ -1,7 +1,7 @@
 import os
-from . import config
-from .books_library import BooksLibrary
-from .txt_file import BookChunkManager
+import config
+from books_library import BooksLibrary
+from txt_file import BookChunkManager
 
 
 class BookReader():

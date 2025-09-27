@@ -1,7 +1,7 @@
 import sys
 import os
-from .db_manager import DbManager
-from .text_replacer import TextReplacer
+from db_manager import DbManager
+from text_replacer import TextReplacer
 
 class BooksLibrary(object):
     """

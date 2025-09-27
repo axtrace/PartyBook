@@ -1,6 +1,6 @@
-from .file_converter import FileConverter
+from file_converter import FileConverter
 # from db_manager import DatabaseManager
-from .books_library import BooksLibrary
+from books_library import BooksLibrary
 
 
 class BookAdder(object):

@@ -1,10 +1,10 @@
 import os
 import errno
 from time import gmtime, strftime
-from .text_separator import TextSeparator
-from .s3_adapter import s3Adapter
+from text_separator import TextSeparator
+from s3_adapter import s3Adapter
 from nltk.tokenize import sent_tokenize
-from . import config
+import config
 
 class FileWriter(object):
     """
