@@ -89,7 +89,18 @@ def my_books_handler(message):
 @bot.message_handler(commands=['auto_status'])
 def auto_status_handler(message):
     try:
-        bot.reply_to(message, "auto_status", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
+        # 1 means auto is ON
+        is_auto_ON = (books_library.get_auto_status(user_id) == 1)
+        markup_list = ['/more', '/help']
+        if is_auto_ON:
+            markup_list.append('/stop_auto')
+            msg = config.message_everyday_ON[lang]
+        else:
+            markup_list.append('/start_auto')
+            msg = config.message_everyday_OFF[lang]
+        bot.send_message(chat_id, msg, reply_markup=markup(markup_list))
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -115,9 +126,13 @@ def change_lang_handler(message):
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
 @bot.message_handler(commands=['stop_auto', 'start_auto'])
-def auto_control_handler(message):
+def change_autostatus(message):
     try:
-        bot.reply_to(message, "auto_control", reply_markup=user_markup_normal)
+        user_id = message.from_user.id
+        # 1 means auto is ON
+        if switch_needed(message):
+            books_library.switch_auto_status(user_id)
+        auto_status_handler(message)  # Show updated status
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -216,3 +231,14 @@ def process_change_book(message):
             bot.send_message(chat_id, msg)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+
+def switch_needed(message):
+    user_id, chat_id = message.from_user.id, message.chat.id
+    is_auto_ON = (books_library.get_auto_status(user_id) == 1)
+    command = message.text.replace('/', '')
+    # update only if ON+stop OR OFF+start:
+    legitimate_stop = is_auto_ON and command == 'stop_auto'
+    legitimate_start = not is_auto_ON and command == 'start_auto'
+    need = legitimate_stop or legitimate_start
+    return need
