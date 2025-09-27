@@ -65,7 +65,11 @@ def more_handler(message):
 @bot.message_handler(commands=['help'])
 def help_handler(message):
     try:
-        bot.reply_to(message, "help", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        bot.send_chat_action(chat_id, 'typing')
+        lang = books_library.get_lang(user_id)
+        msg = config.message_help[lang]
+        bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
