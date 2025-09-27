@@ -307,3 +307,13 @@ class DbManager:
         result = self.db_adapter.execute_query(query)
         data = self._text_to_json(str(result[0].rows[0]))
         return data['id']
+
+    def update_book_mode(self, user_id, book_id, mode):
+        # Update mode for specific user's book
+        query = f"""
+            UPDATE user_books 
+            SET mode = "{mode}"
+            WHERE userId = {user_id} AND bookId = {book_id};
+        """
+        self.db_adapter.execute_query(query)
+        return 0

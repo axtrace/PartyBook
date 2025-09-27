@@ -69,6 +69,11 @@ class BooksLibrary(object):
             book_name = self._format_name(book_name, user_id)
         return book_id, book_name, pos, mode
 
+    def update_book_mode(self, user_id, book_id, mode):
+        # Update reading mode for specific book
+        self.db.update_book_mode(user_id, book_id, mode)
+        return 0
+
     def _format_name(self, file_name, user_id):
         # Just del user_id and .txt from file_name
         text_dict = {

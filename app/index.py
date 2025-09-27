@@ -118,7 +118,29 @@ def now_reading_handler(message):
 @bot.message_handler(commands=['poem_mode'])
 def poem_mode_handler(message):
     try:
-        bot.reply_to(message, "poem_mode", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        bot.send_chat_action(chat_id, 'typing')
+        
+        # Получаем текущую книгу пользователя
+        book_id, book_name, pos, current_mode = books_library.get_current_book(user_id)
+        
+        if book_id is None or book_name is None:
+            lang = books_library.get_lang(user_id)
+            msg = config.error_current_book[lang]
+            bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+            return
+            
+        # Переключаем режим: normal <-> poem
+        new_mode = "poem" if current_mode == "normal" else "normal"
+        books_library.update_book_mode(user_id, book_id, new_mode)
+        
+        lang = books_library.get_lang(user_id)
+        if new_mode == "poem":
+            msg = config.message_poem_mode_ON[lang]
+        else:
+            msg = config.message_poem_mode_OFF[lang]
+            
+        bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -256,3 +278,13 @@ def now_reading_answer(user_id):
         lang = books_library.get_lang(user_id)
         return config.error_current_book[lang]
     return book_name
+
+
+def _get_user_send_mode(user_id):
+    # Получаем режим текущей книги пользователя
+    book_id, book_name, pos, mode = books_library.get_current_book(user_id)
+    
+    if mode == "poem":
+        return 'by_newline'  # Режим стихов - разбивка по строкам
+    else:
+        return 'by_sense'    # Обычный режим - разбивка по смыслу
