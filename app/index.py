@@ -107,7 +107,11 @@ def auto_status_handler(message):
 @bot.message_handler(commands=['now_reading'])
 def now_reading_handler(message):
     try:
-        bot.reply_to(message, "now_reading", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        bot.send_chat_action(chat_id, 'typing')
+        book_name = now_reading_answer(user_id)
+        bot.send_message(chat_id, book_name,
+                        reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
@@ -242,3 +246,13 @@ def switch_needed(message):
     legitimate_start = not is_auto_ON and command == 'start_auto'
     need = legitimate_stop or legitimate_start
     return need
+
+
+def now_reading_answer(user_id):
+    # prepare answer for now reading.
+    # If no info, returns error message from config
+    book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
+    if book_name == -1:
+        lang = books_library.get_lang(user_id)
+        return config.error_current_book[lang]
+    return book_name
