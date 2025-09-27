@@ -1,7 +1,7 @@
 {
   "message_success_start": {
-    "ru": "Привет! Я бот для чтения книг.\nВы можете прислать мне файл книги в формате .epub и начать читать.\n-----\nКстати, можете найти книгу в боте @flibustafreebookbot и переслать сообщение с файлом мне.\n-----\nЯ буду напоминать о книге. Каждый день буду присылать маленький отрывок в 20:20.\nОстановить напоминания можно командой /stop_auto\nДля загрузки стихов включите режим /poem_mode.\nПомощь /help\nChange language /change_lang",
-    "en": "Hello! It seems you are a new user! Glad to see you!\nPlease send me .epub file for start reading.\n-----\nBy the way, you can find book somewhere in Telegram.\nFor example, just forward me message with .epub book from @flibustafreebookbot\n-----\nI will notify you with a little piece of text every day at 20:20.\nYou can stop auto-notification by command /stop_auto\nFor upload a poem please send me /poem_mode before file\nFor more info use command /help\n"
+    "ru": "Привет! Я — бот для чтения книг.\nПросто пришлите мне файл книги в формате .epub, и вы сможете начать читать.\nЯ буду ежедневно напоминать вам о книге, присылая небольшой отрывок в 20:20.\nОстановить напоминания можно командой /stop_auto.\nДля загрузки стихов включите режим /poem_mode.\nДля помощи используйте /help.\nЧтобы сменить язык, используйте /change_lang.",
+    "en": "Hello! I am a book reading bot.\nJust send me a book file in .epub format, and you can start reading.\nI will remind you about your book every day by sending a small excerpt at 20:20.\nYou can stop reminders with the /stop_auto command.\nTo upload poems, enable /poem_mode.\nFor help, use /help.\nTo change the language, use /change_lang."
   },
   "message_file_added": {
     "ru": "Файл успешно добавлен! Начните читать командой /more\nДля помощи используйте /help\n",
@@ -52,8 +52,8 @@
     "en": "Congratulations! The book is finished.\nStart already uploaded /my_books\nOr send a new .epub file."
   },
   "message_dont_understand": {
-    "ru": "Я не понял команду {}.\nМожет быть, вы хотите найти книгу?\nТогда можете найти книгу в @flibustafreebookbot и переслать мне сообщение c файлом\nДоступные команды - /help",
-    "en": "I do not understand {}.\nIf you want to find the book, try @flibustafreebookbot and forward me message with a file\nSee commands at /help"
+    "ru": "Я не понял команду {}.\nЕсли вы хотите найти книгу, просто пришлите мне файл книги в формате .epub.\nСписок доступных команд — /help",
+    "en": "I did not understand the command {}.\nIf you want to read a book, just send me an .epub file.\nSee available commands with /help"
   },
   "message_lang_changed": {
     "ru": "Язык успешно изменен.\nПомощь: /help",
@@ -72,8 +72,8 @@
     "en": "------\nChoose the book for start reading"
   },
   "message_help": {
-    "ru": "Я бот для чтения книг\nВы можете прислать мне файл книги в формате .epub и начать читать.\n-----\nКстати, можете найти книгу в боте @flibustafreebookbot и переслать сообщение с файлом мне.\n-----\nЯ буду напоминать о книге. Каждый день буду присылать маленький отрывок в 20:20.\nОстановить напоминания можно командой /stop_auto\nЗапросить очередной кусочек книги можно командой /more\nДля правильной разбивки стихов по строкам используйте специальный режим перед загрузкой файла /poem_mode\nДругие команды вы можете видеть на клавиатуре в поле ввода.\nПриятного чтения!\nChange language /change_lang",
-    "en": "I am bot for reading books.\nYou can send me .epub file and start reading it.\n-----\nBy the way, you can find book somewhere in Telegram.\nFor example, just forward me message with .epub book from @flibustafreebookbot\n-----\nI will notify you with a little piece of text every day at 20:20.\nYou can request next piece of text by command /more\nYou can stop auto-notification at any moment by command /stop_auto\nFor upload a poem book use this command before sending book /poem_mode\nOther available commands are on the keyboard under text field.\nGood luck!\nChange language /change_lang"
+    "ru": "Я помогу вам читать книги прямо здесь, в Telegram!\n\nПросто пришлите мне файл книги в формате .epub — и вы сможете начать чтение.\n\nЯ буду напоминать вам о чтении каждый день в 20:20, присылая небольшой фрагмент книги. Чтобы остановить напоминания, используйте команду /stop_auto. Чтобы получить следующий фрагмент — /more.\n\nЕсли вы читаете стихи, активируйте специальный режим командой /poem_mode перед загрузкой файла.\n\nВсе доступные команды вы найдете на клавиатуре под полем ввода.\n\nПриятного чтения!\n\nСменить язык: /change_lang",
+    "en": "I will help you read books right here in Telegram!\n\nJust send me an .epub file and you can start reading.\n\nI will remind you about your book every day at 20:20 by sending a small excerpt. To stop reminders, use /stop_auto. To get the next part, use /more.\n\nIf you want to read poetry, activate the special mode with /poem_mode before uploading the file.\n\nAll available commands are on the keyboard below the input field.\n\nHappy reading!\n\nChange language: /change_lang"
   },
 
   "message_empty_booklist": {
