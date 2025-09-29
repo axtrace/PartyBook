@@ -56,8 +56,36 @@ class EpubReader():
     def get_next_item_text(self):
         # return text of next item with type ITEM_DOCUMENT
         if len(self.item_ids) == 0:
+            print("📚 Все элементы книги обработаны")
             return None
-        item_id = self.item_ids.pop(0)
-        item_doc = self.book.get_item_with_id(item_id)
-        soup = bs(item_doc.content.decode('utf-8'), "xml")
-        return soup.body.get_text()
+        
+        try:
+            item_id = self.item_ids.pop(0)
+            print(f"📖 Обрабатываем элемент: {item_id}")
+            item_doc = self.book.get_item_with_id(item_id)
+            
+            if item_doc is None:
+                print(f"⚠️ Элемент {item_id} не найден, пропускаем")
+                return self.get_next_item_text()  # Рекурсивно переходим к следующему
+            
+            soup = bs(item_doc.content.decode('utf-8'), "xml")
+            
+            # Пытаемся получить текст из body, если его нет - из всего документа
+            if soup.body:
+                text = soup.body.get_text()
+            else:
+                text = soup.get_text()
+            
+            # Очищаем текст от лишних пробелов
+            text = ' '.join(text.split())
+            
+            if text.strip():
+                print(f"📄 Извлечен текст длиной {len(text)} символов из {item_id}")
+                return text
+            else:
+                print(f"⚠️ Пустой текст в элементе {item_id}, пропускаем")
+                return self.get_next_item_text()  # Рекурсивно переходим к следующему
+                
+        except Exception as e:
+            print(f"❌ Ошибка при обработке элемента {item_id}: {e}")
+            return self.get_next_item_text()  # Рекурсивно переходим к следующему

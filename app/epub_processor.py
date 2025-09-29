@@ -59,6 +59,8 @@ class EpubProcessor(object):
             print(f"📄 Начинаем разбивку на чанки...")
             text_blocks_processed = 0
             total_chunks_created = 0
+            empty_blocks_skipped = 0
+            
             cur_text = book_reader.get_next_item_text()
             
             while cur_text is not None:
@@ -72,13 +74,17 @@ class EpubProcessor(object):
                     except Exception as e:
                         print(f"❌ Ошибка при обработке текстового блока: {e}")
                         # Продолжаем обработку других блоков
+                else:
+                    empty_blocks_skipped += 1
+                    print(f"⚠️ Пропущен пустой блок #{empty_blocks_skipped}")
+                
                 cur_text = book_reader.get_next_item_text()
             
-            print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}")
+            print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}, пропущено пустых: {empty_blocks_skipped}")
             return book_id
             
         except Exception as e:
             print(f"❌ Error processing EPUB: {str(e)}")
             import traceback
             print(f"❌ Traceback: {traceback.format_exc()}")
-            raise e
+            return None
