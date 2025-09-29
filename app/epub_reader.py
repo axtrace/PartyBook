@@ -18,6 +18,8 @@ class EpubReader():
             self.spine_ids = self._get_spine_ids()
             self.item_ids = self._get_item_ids()
             self.item_ids.sort(key=self._sort_by_spine) # sort list of docs ids in order they follow in spine_ids
+            print(f"📚 EPUB загружен: {len(self.item_ids)} элементов для обработки")
+            print(f"📋 Элементы: {self.item_ids[:10]}{'...' if len(self.item_ids) > 10 else ''}")
         else:
             self.book = None
         pass
@@ -58,7 +60,8 @@ class EpubReader():
         while len(self.item_ids) > 0:
             try:
                 item_id = self.item_ids.pop(0)
-                print(f"📖 Обрабатываем элемент: {item_id}")
+                remaining = len(self.item_ids)
+                print(f"📖 Обрабатываем элемент: {item_id} (осталось: {remaining})")
                 item_doc = self.book.get_item_with_id(item_id)
                 
                 if item_doc is None:

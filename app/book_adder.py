@@ -10,7 +10,7 @@ class BookAdder(object):
         self.books_lib = BooksLibrary()
         self.epub_processor = EpubProcessor()
 
-    def add_new_book(self, user_id, chat_id, epub_path, sending_mode):
+    def add_new_book(self, user_id, chat_id, epub_path, sending_mode, bot=None):
         """
         Process EPUB file and add to user's library
         
@@ -19,6 +19,7 @@ class BookAdder(object):
             chat_id: Chat ID for database updates
             epub_path: Path to the EPUB file
             sending_mode: Mode for text separation ('by_sense' or 'by_newline')
+            bot: Telegram bot instance for sending progress messages
             
         Returns:
             book_id: ID of the created book, or -1 if error
@@ -27,7 +28,7 @@ class BookAdder(object):
             print(f"🚀 Начинаем добавление книги для пользователя {user_id}")
             
             # Process EPUB file and create chunks in database
-            book_id = self.epub_processor.process_epub(user_id, epub_path, sending_mode)
+            book_id = self.epub_processor.process_epub(user_id, epub_path, sending_mode, bot, chat_id)
             print(f"📚 EPUB обработан, получен book_id: {book_id}")
             
             if book_id is None:

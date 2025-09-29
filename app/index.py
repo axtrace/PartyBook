@@ -319,7 +319,7 @@ def handle_document(message):
             sending_mode = 'by_sense'
             print(f"🔄 Начинаем обработку файла с режимом: {sending_mode}")
             
-            book_id = book_adder.add_new_book(user_id, chat_id, local_file_path, sending_mode)
+            book_id = book_adder.add_new_book(user_id, chat_id, local_file_path, sending_mode, bot)
             print(f"📚 Книга обработана, ID: {book_id}")
             
             if book_id != -1:
