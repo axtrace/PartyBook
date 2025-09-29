@@ -57,11 +57,17 @@ class EpubReader():
 
     def get_next_item_text(self):
         # return text of next item with type ITEM_DOCUMENT
+        if len(self.item_ids) == 0:
+            print("📚 Все элементы книги обработаны")
+            return None
+        
+        # Пытаемся обработать элементы до тех пор, пока не найдем текст
         while len(self.item_ids) > 0:
+            item_id = self.item_ids.pop(0)
+            remaining = len(self.item_ids)
+            print(f"📖 Обрабатываем элемент: {item_id} (осталось: {remaining})")
+            
             try:
-                item_id = self.item_ids.pop(0)
-                remaining = len(self.item_ids)
-                print(f"📖 Обрабатываем элемент: {item_id} (осталось: {remaining})")
                 item_doc = self.book.get_item_with_id(item_id)
                 
                 if item_doc is None:
@@ -84,11 +90,11 @@ class EpubReader():
                     return text
                 else:
                     print(f"⚠️ Пустой текст в элементе {item_id}, пропускаем")
-                    continue
+                    # Продолжаем цикл, чтобы попробовать следующий элемент
                     
             except Exception as e:
                 print(f"❌ Ошибка при обработке элемента {item_id}: {e}")
-                continue
+                # Продолжаем цикл, чтобы попробовать следующий элемент
         
         print("📚 Все элементы книги обработаны")
         return None
