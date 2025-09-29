@@ -366,32 +366,35 @@ class DbManager:
             print(f"✅ ID найденной книги: {book_id}")
             return book_id
         else:
-            # Book doesn't exist, create new one using UPSERT with NULL id for auto-generation
+            # Book doesn't exist, create new one
             print(f"📝 Книга не найдена, создаем новую...")
+            
+            # Get the next available ID by finding the maximum existing ID
+            max_id_query = """
+                SELECT MAX(id) as max_id FROM books;
+            """
+            print(f"🔍 Получаем максимальный ID: {max_id_query}")
+            max_result = self.db_adapter.execute_query(max_id_query)
+            print(f"🔍 Результат максимального ID: {max_result}")
+            
+            if max_result and len(max_result[0].rows) > 0:
+                max_data = self._text_to_json(str(max_result[0].rows[0]))
+                next_id = (max_data.get('max_id', 0) or 0) + 1
+            else:
+                next_id = 1
+            
+            print(f"📝 Следующий ID: {next_id}")
+            
+            # Insert new book with the calculated ID
             query = f"""
-                UPSERT INTO books
+                INSERT INTO books
                     (id, bookName, hash)
                 VALUES
-                    (NULL, "{book_name}", "");
+                    ({next_id}, "{book_name}", "");
             """
-            print(f"📝 Выполняем UPSERT: {query}")
+            print(f"📝 Выполняем INSERT: {query}")
             self.db_adapter.execute_query(query)
-            print(f"✅ UPSERT выполнен")
+            print(f"✅ INSERT выполнен")
             
-            # Get the newly created book ID
-            query = f"""
-                SELECT id FROM books
-                WHERE bookName = "{book_name}";
-            """
-            print(f"🔍 Получаем ID созданной книги: {query}")
-            result = self.db_adapter.execute_query(query)
-            print(f"🔍 Результат получения ID: {result}")
-            
-            if result and len(result[0].rows) > 0:
-                data = self._text_to_json(str(result[0].rows[0]))
-                book_id = data['id']
-                print(f"✅ ID созданной книги: {book_id}")
-                return book_id
-            else:
-                print(f"❌ Не удалось получить ID созданной книги")
-                return None
+            print(f"✅ ID созданной книги: {next_id}")
+            return next_id
