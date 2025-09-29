@@ -347,32 +347,51 @@ class DbManager:
 
     def get_or_create_book(self, book_name):
         # Get book ID or create new book, return book_id
+        print(f"🔍 Ищем книгу: {book_name}")
+        
         # First try to find existing book
         query = f"""
             SELECT id FROM books
             WHERE bookName = "{book_name}";
         """
-        result = self._execute_safe_query(query, {'book_name': book_name})
+        print(f"🔍 Выполняем запрос: {query}")
+        result = self.db_adapter.execute_query(query)
+        print(f"🔍 Результат поиска: {result}")
         
         if result and len(result[0].rows) > 0:
             # Book exists, return its ID
+            print(f"✅ Книга найдена, извлекаем ID...")
             data = self._text_to_json(str(result[0].rows[0]))
-            return data['id']
+            book_id = data['id']
+            print(f"✅ ID найденной книги: {book_id}")
+            return book_id
         else:
             # Book doesn't exist, create new one using UPSERT with NULL id for auto-generation
+            print(f"📝 Книга не найдена, создаем новую...")
             query = f"""
                 UPSERT INTO books
                     (id, bookName, hash)
                 VALUES
                     (NULL, "{book_name}", "");
             """
+            print(f"📝 Выполняем UPSERT: {query}")
             self.db_adapter.execute_query(query)
+            print(f"✅ UPSERT выполнен")
             
             # Get the newly created book ID
             query = f"""
                 SELECT id FROM books
                 WHERE bookName = "{book_name}";
             """
+            print(f"🔍 Получаем ID созданной книги: {query}")
             result = self.db_adapter.execute_query(query)
-            data = self._text_to_json(str(result[0].rows[0]))
-            return data['id']
+            print(f"🔍 Результат получения ID: {result}")
+            
+            if result and len(result[0].rows) > 0:
+                data = self._text_to_json(str(result[0].rows[0]))
+                book_id = data['id']
+                print(f"✅ ID созданной книги: {book_id}")
+                return book_id
+            else:
+                print(f"❌ Не удалось получить ID созданной книги")
+                return None

@@ -52,6 +52,9 @@ class EpubProcessor(object):
             book_id = self.db.get_or_create_book(book_name)
             print(f"✅ Книга создана с ID: {book_id}")
             
+            if book_id is None:
+                raise ValueError(f"Не удалось создать или найти книгу: {book_name}")
+            
             # Process text and create chunks
             print(f"📄 Начинаем разбивку на чанки...")
             chunk_count = 0
