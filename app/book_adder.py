@@ -1,5 +1,5 @@
-from epub_processor import EpubProcessor
-from books_library import BooksLibrary
+from .epub_processor import EpubProcessor
+from .books_library import BooksLibrary
 import os
 
 
