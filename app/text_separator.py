@@ -58,8 +58,9 @@ class TextSeparator(object):
         Простая токенизация предложений без NLTK
         Разбивает текст по точкам, восклицательным и вопросительным знакам
         """
-        # Паттерны для разделения предложений
-        sentence_endings = r'[.!?]+'
+        # Паттерн для разделения предложений - более точный
+        # Ищем точки, восклицательные и вопросительные знаки, за которыми следует пробел и заглавная буква
+        sentence_endings = r'(?<=[.!?])\s+(?=[А-ЯA-Z])'
         
         # Разбиваем текст по концам предложений
         sentences = re.split(sentence_endings, text)
@@ -68,7 +69,10 @@ class TextSeparator(object):
         cleaned_sentences = []
         for sentence in sentences:
             sentence = sentence.strip()
-            if sentence and len(sentence) > 3:  # Игнорируем очень короткие фрагменты
+            # Добавляем точку в конец, если её нет
+            if sentence and not sentence.endswith(('.', '!', '?')):
+                sentence += '.'
+            if sentence and len(sentence) > 5:  # Игнорируем очень короткие фрагменты
                 cleaned_sentences.append(sentence)
         
         return cleaned_sentences

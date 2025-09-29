@@ -23,35 +23,25 @@ class BookChunkManager(object):
         sentences = TextSeparator(text, mode=sent_mode).get_sentences()
         print(f"📝 Получено {len(sentences)} предложений")
         
-        # Группируем предложения в чанки
-        current_chunk = ""
+        # Группируем предложения в чанки по 5 предложений
+        sentences_per_chunk = 5
         chunk_id = current_chunk_count  # Начинаем с существующего количества
-        
         chunks_created = 0
         
-        for sentence in sentences:
-            if len(current_chunk) + len(sentence) > self.chunk_size:
-                # Сохраняем текущий чанк
+        for i in range(0, len(sentences), sentences_per_chunk):
+            # Берем следующие 5 предложений (или меньше, если это конец)
+            chunk_sentences = sentences[i:i + sentences_per_chunk]
+            current_chunk = ' '.join(chunk_sentences)
+            
+            if current_chunk.strip():
                 try:
                     self.db.save_chunk(book_id, chunk_id, current_chunk)
-                    print(f"💾 Сохранен чанк {chunk_id} длиной {len(current_chunk)} символов")
+                    print(f"💾 Сохранен чанк {chunk_id} длиной {len(current_chunk)} символов ({len(chunk_sentences)} предложений)")
                     chunk_id += 1
                     chunks_created += 1
-                    current_chunk = sentence
                 except Exception as e:
                     print(f"❌ Ошибка сохранения чанка {chunk_id}: {e}")
                     return chunks_created
-            else:
-                current_chunk += sentence
-        
-        # Сохраняем последний чанк
-        if current_chunk:
-            try:
-                self.db.save_chunk(book_id, chunk_id, current_chunk)
-                print(f"💾 Сохранен последний чанк {chunk_id} длиной {len(current_chunk)} символов")
-                chunks_created += 1
-            except Exception as e:
-                print(f"❌ Ошибка сохранения последнего чанка {chunk_id}: {e}")
         
         print(f"✅ Создано {chunks_created} новых чанков")
         return chunks_created

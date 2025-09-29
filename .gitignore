@@ -174,3 +174,4 @@ files/
 # DB scheme
 db_desc.txt
 .cursor/rules/main-project-rule.mdc
+test_epub_reader.py
