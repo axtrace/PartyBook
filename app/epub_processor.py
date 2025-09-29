@@ -85,7 +85,14 @@ class EpubProcessor(object):
             cur_text = book_reader.get_next_item_text()
             print(f"📊 Первый блок получен: {cur_text is not None}, длина: {len(cur_text) if cur_text else 0}")
             
-            while cur_text is not None:
+            # Добавляем счетчик попыток для предотвращения бесконечного цикла
+            max_attempts = 100000  # Максимум 1000 блоков
+            attempt_count = 0
+            
+            while cur_text is not None and attempt_count < max_attempts:
+                attempt_count += 1
+                print(f"🔄 Попытка #{attempt_count}, блоков обработано: {text_blocks_processed}")
+                
                 if cur_text.strip():  # Only process non-empty text
                     print(f"🔄 Обрабатываем текст длиной {len(cur_text)} символов...")
                     try:
@@ -101,6 +108,8 @@ class EpubProcessor(object):
                         
                     except Exception as e:
                         print(f"❌ Ошибка при обработке текстового блока: {e}")
+                        import traceback
+                        print(f"❌ Traceback: {traceback.format_exc()}")
                         # Продолжаем обработку других блоков
                 else:
                     empty_blocks_skipped += 1
@@ -110,6 +119,9 @@ class EpubProcessor(object):
                 print(f"🔄 Получаем следующий блок текста...")
                 cur_text = book_reader.get_next_item_text()
                 print(f"📊 Следующий блок получен: {cur_text is not None}, длина: {len(cur_text) if cur_text else 0}")
+            
+            if attempt_count >= max_attempts:
+                print(f"⚠️ Достигнуто максимальное количество попыток ({max_attempts}), прерываем обработку")
             
             print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}, пропущено пустых: {empty_blocks_skipped}")
             

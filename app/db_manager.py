@@ -342,14 +342,32 @@ class DbManager:
             print(f"✅ Книга найдена, извлекаем ID...")
             print(f"🔍 Сырой результат: {result[0].rows[0]}")
             print(f"🔍 Строковое представление: {str(result[0].rows[0])}")
-            data = self._text_to_json(str(result[0].rows[0]))
-            print(f"🔍 Распарсенные данные: {data}")
-            book_id = data.get('id')
-            if book_id is None:
-                print(f"❌ Ошибка: не удалось извлечь ID книги из данных: {data}")
-                return None
-            print(f"✅ ID найденной книги: {book_id}")
-            return book_id
+            
+            # Пробуем разные способы извлечения ID
+            try:
+                # Способ 1: через _text_to_json
+                data = self._text_to_json(str(result[0].rows[0]))
+                print(f"🔍 Распарсенные данные: {data}")
+                book_id = data.get('id')
+                if book_id is not None:
+                    print(f"✅ ID найденной книги (способ 1): {book_id}")
+                    return int(book_id)
+            except Exception as e:
+                print(f"⚠️ Способ 1 не сработал: {e}")
+            
+            try:
+                # Способ 2: прямое извлечение из результата
+                raw_id = result[0].rows[0][0]  # Первый столбец первой строки
+                print(f"🔍 Прямой ID: {raw_id}")
+                if raw_id is not None:
+                    book_id = int(raw_id)
+                    print(f"✅ ID найденной книги (способ 2): {book_id}")
+                    return book_id
+            except Exception as e:
+                print(f"⚠️ Способ 2 не сработал: {e}")
+            
+            print(f"❌ Ошибка: не удалось извлечь ID книги")
+            return None
         else:
             # Book doesn't exist, create new one
             print(f"📝 Книга не найдена, создаем новую...")
@@ -362,15 +380,24 @@ class DbManager:
             max_result = self.db_adapter.execute_query(max_id_query)
             print(f"🔍 Результат максимального ID: {max_result}")
             
+            next_id = 1  # По умолчанию
+            
             if max_result and len(max_result[0].rows) > 0:
-                max_data = self._text_to_json(str(max_result[0].rows[0]))
-                max_id = max_data.get('max_id')
-                if max_id is None:
-                    next_id = 1
-                else:
-                    next_id = int(max_id) + 1
-            else:
-                next_id = 1
+                try:
+                    # Способ 1: через _text_to_json
+                    max_data = self._text_to_json(str(max_result[0].rows[0]))
+                    max_id = max_data.get('max_id')
+                    if max_id is not None:
+                        next_id = int(max_id) + 1
+                except Exception as e:
+                    print(f"⚠️ Способ 1 для max_id не сработал: {e}")
+                    try:
+                        # Способ 2: прямое извлечение
+                        raw_max_id = max_result[0].rows[0][0]
+                        if raw_max_id is not None:
+                            next_id = int(raw_max_id) + 1
+                    except Exception as e2:
+                        print(f"⚠️ Способ 2 для max_id не сработал: {e2}")
             
             print(f"📝 Следующий ID: {next_id}")
             

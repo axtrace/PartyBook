@@ -72,7 +72,14 @@ class EpubReader():
                 print(f"⚠️ Элемент {item_id} не найден, пропускаем")
                 return self.get_next_item_text()  # Рекурсивно переходим к следующему
             
-            soup = bs(item_doc.content.decode('utf-8'), "xml")
+            # Декодируем содержимое
+            try:
+                content = item_doc.content.decode('utf-8')
+            except UnicodeDecodeError:
+                print(f"⚠️ Ошибка декодирования UTF-8 для {item_id}, пробуем latin-1")
+                content = item_doc.content.decode('latin-1')
+            
+            soup = bs(content, "xml")
             
             # Пытаемся получить текст из body, если его нет - из всего документа
             if soup.body:
@@ -81,10 +88,11 @@ class EpubReader():
                 text = soup.get_text()
             
             # Очищаем текст от лишних пробелов
-            # text = ' '.join(text.split())
+            text = ' '.join(text.split())
             
             if text.strip():
                 print(f"📄 Извлечен текст длиной {len(text)} символов из {item_id}")
+                print(f"📄 Превью текста: {text[:100]}...")
                 return text
             else:
                 print(f"⚠️ Пустой текст в элементе {item_id}, пропускаем")
@@ -92,4 +100,6 @@ class EpubReader():
                 
         except Exception as e:
             print(f"❌ Ошибка при обработке элемента {item_id}: {e}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
             return self.get_next_item_text()  # Рекурсивно переходим к следующему
