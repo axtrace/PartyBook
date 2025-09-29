@@ -31,7 +31,7 @@ class BookAdder(object):
             self.books_lib.update_current_book(user_id, chat_id, book_id)
             
             # Set reading position to 0 (start of book)
-            self.books_lib.update_book_pos(user_id, book_id, 0)
+            self.books_lib.update_book5_pos(user_id, book_id, 0)
             
             # Clean up temporary file
             if os.path.exists(epub_path):

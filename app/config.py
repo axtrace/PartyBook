@@ -97,7 +97,8 @@ except FileNotFoundError:
         }
     }
 
-path_for_save = os.path.join(os.getcwd(), 'files')  # path for saving files
+# В Yandex Cloud Functions используем /tmp/ для временных файлов
+path_for_save = '/tmp'  # path for saving files
 piece_size = 893  # 384 get approximately, for comfortable reading on smartphone
 max_msg_size = 4096 # restriction from telegram
 
