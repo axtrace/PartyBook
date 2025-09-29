@@ -296,17 +296,6 @@ class DbManager:
         data = self._text_to_json(str(result[0].rows[0]))
         return data['count']
 
-    def get_or_create_book(self, book_name):
-        query = f"""
-            UPSERT INTO books
-                (bookName)
-            VALUES
-            ("{book_name}")
-            RETURNING id;
-        """
-        result = self.db_adapter.execute_query(query)
-        data = self._text_to_json(str(result[0].rows[0]))
-        return data['id']
 
     def update_book_mode(self, user_id, book_id, mode):
         # Update mode for specific user's book
@@ -370,13 +359,19 @@ class DbManager:
             data = self._text_to_json(str(result[0].rows[0]))
             return data['id']
         else:
-            # Book doesn't exist, create new one
+            # Book doesn't exist, create new one using UPSERT with NULL id for auto-generation
             query = f"""
-                INSERT INTO books
-                    (bookName)
+                UPSERT INTO books
+                    (id, bookName, hash)
                 VALUES
-                    ("{book_name}")
-                RETURNING id;
+                    (NULL, "{book_name}", "");
+            """
+            self.db_adapter.execute_query(query)
+            
+            # Get the newly created book ID
+            query = f"""
+                SELECT id FROM books
+                WHERE bookName = "{book_name}";
             """
             result = self.db_adapter.execute_query(query)
             data = self._text_to_json(str(result[0].rows[0]))
