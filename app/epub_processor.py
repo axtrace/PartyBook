@@ -57,16 +57,24 @@ class EpubProcessor(object):
             
             # Process text and create chunks
             print(f"📄 Начинаем разбивку на чанки...")
-            chunk_count = 0
+            text_blocks_processed = 0
+            total_chunks_created = 0
             cur_text = book_reader.get_next_item_text()
+            
             while cur_text is not None:
                 if cur_text.strip():  # Only process non-empty text
                     print(f"🔄 Обрабатываем текст длиной {len(cur_text)} символов...")
-                    self.chunk_manager.create_chunks(book_id, cur_text, sending_mode)
-                    chunk_count += 1
+                    try:
+                        chunks_created = self.chunk_manager.create_chunks(book_id, cur_text, sending_mode)
+                        total_chunks_created += chunks_created
+                        text_blocks_processed += 1
+                        print(f"📊 Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}")
+                    except Exception as e:
+                        print(f"❌ Ошибка при обработке текстового блока: {e}")
+                        # Продолжаем обработку других блоков
                 cur_text = book_reader.get_next_item_text()
             
-            print(f"✅ Обработка завершена. Создано {chunk_count} чанков")
+            print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}")
             return book_id
             
         except Exception as e:

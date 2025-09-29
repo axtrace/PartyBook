@@ -1,7 +1,11 @@
 import os
-from bs4 import BeautifulSoup as bs
+import warnings
+from bs4 import BeautifulSoup as bs, XMLParsedAsHTMLWarning
 import ebooklib
 from ebooklib import epub
+
+# Фильтруем предупреждения о парсинге XML как HTML
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 
 class EpubReader():
@@ -55,5 +59,5 @@ class EpubReader():
             return None
         item_id = self.item_ids.pop(0)
         item_doc = self.book.get_item_with_id(item_id)
-        soup = bs(item_doc.content.decode('utf-8'), "lxml")
+        soup = bs(item_doc.content.decode('utf-8'), "xml")
         return soup.body.get_text()

@@ -264,14 +264,22 @@ class DbManager:
         return None
 
     def save_chunk(self, book_id, chunk_id, text):
+        # Экранируем текст для SQL запроса
+        escaped_text = text.replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+        
         query = f"""
             UPSERT INTO book_chunks
                 (bookId, chunkId, text)
             VALUES
-            ({book_id}, {chunk_id}, "{text}");
+            ({book_id}, {chunk_id}, "{escaped_text}");
         """
-        self.db_adapter.execute_query(query)
-        return 0
+        
+        try:
+            self.db_adapter.execute_query(query)
+            return 0
+        except Exception as e:
+            print(f"❌ Ошибка сохранения чанка {chunk_id} для книги {book_id}: {e}")
+            raise e
 
     def get_chunk(self, book_id, chunk_id):
         query = """
