@@ -24,19 +24,32 @@ class BookAdder(object):
             book_id: ID of the created book, or -1 if error
         """
         try:
+            print(f"🚀 Начинаем добавление книги для пользователя {user_id}")
+            
             # Process EPUB file and create chunks in database
             book_id = self.epub_processor.process_epub(user_id, epub_path, sending_mode)
+            print(f"📚 EPUB обработан, получен book_id: {book_id}")
+            
+            if book_id is None:
+                print(f"❌ Ошибка: process_epub вернул None")
+                return -1
             
             # Update user's current book
+            print(f"🔄 Обновляем текущую книгу пользователя...")
             self.books_lib.update_current_book(user_id, chat_id, book_id)
+            print(f"✅ Текущая книга обновлена")
             
             # Set reading position to 0 (start of book)
-            self.books_lib.update_book5_pos(user_id, book_id, 0)
+            print(f"🔄 Устанавливаем позицию чтения в 0...")
+            self.books_lib.update_book_pos(user_id, book_id, 0)
+            print(f"✅ Позиция чтения установлена")
             
             # Clean up temporary file
             if os.path.exists(epub_path):
                 os.remove(epub_path)
+                print(f"🗑️ Временный файл удален: {epub_path}")
             
+            print(f"🎉 Книга успешно добавлена! ID: {book_id}")
             return book_id
             
         except Exception as e:
