@@ -147,7 +147,28 @@ def poem_mode_handler(message):
 @bot.message_handler(commands=['change_lang'])
 def change_lang_handler(message):
     try:
-        bot.reply_to(message, "change_lang", reply_markup=user_markup_normal)
+        user_id, chat_id = message.from_user.id, message.chat.id
+        lang_list = ['en', 'ru']
+        msg = 'Choose language on keyboard\n'
+        bot.send_message(chat_id, msg, reply_markup=markup(lang_list))
+        bot.register_next_step_handler(message, change_lang)
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
+
+
+def change_lang(message):
+    try:
+        user_id, chat_id = message.from_user.id, message.chat.id
+        cur_lang = books_library.get_lang(user_id)
+        new_lang = message.text
+        lang_list = ['en', 'ru']
+        
+        if new_lang in lang_list:
+            books_library.update_lang(user_id, new_lang)
+            msg = config.message_lang_changed[new_lang]
+        else:
+            msg = config.error_lang_recognition[cur_lang]
+        bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
