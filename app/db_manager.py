@@ -317,3 +317,67 @@ class DbManager:
         """
         self.db_adapter.execute_query(query)
         return 0
+
+    def save_chunk(self, book_id, chunk_id, text):
+        # Save text chunk to book_chunks table
+        query = f"""
+            UPSERT INTO book_chunks
+                (bookId, chunkId, text)
+            VALUES
+                ({book_id}, {chunk_id}, "{text}");
+        """
+        self.db_adapter.execute_query(query)
+        return 0
+
+    def get_chunk(self, book_id, chunk_id):
+        # Get text chunk by book_id and chunk_id
+        query = f"""
+            SELECT text FROM book_chunks
+            WHERE bookId = {book_id} AND chunkId = {chunk_id};
+        """
+        result = self._execute_safe_query(query, {
+            'book_id': book_id,
+            'chunk_id': chunk_id
+        })
+        if not result or len(result[0].rows) == 0:
+            return None
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['text']
+
+    def get_total_chunks(self, book_id):
+        # Get total number of chunks for a book
+        query = f"""
+            SELECT COUNT(*) as total FROM book_chunks
+            WHERE bookId = {book_id};
+        """
+        result = self._execute_safe_query(query, {'book_id': book_id})
+        if not result or len(result[0].rows) == 0:
+            return 0
+        data = self._text_to_json(str(result[0].rows[0]))
+        return data['total']
+
+    def get_or_create_book(self, book_name):
+        # Get book ID or create new book, return book_id
+        # First try to find existing book
+        query = f"""
+            SELECT id FROM books
+            WHERE bookName = "{book_name}";
+        """
+        result = self._execute_safe_query(query, {'book_name': book_name})
+        
+        if result and len(result[0].rows) > 0:
+            # Book exists, return its ID
+            data = self._text_to_json(str(result[0].rows[0]))
+            return data['id']
+        else:
+            # Book doesn't exist, create new one
+            query = f"""
+                INSERT INTO books
+                    (bookName)
+                VALUES
+                    ("{book_name}")
+                RETURNING id;
+            """
+            result = self.db_adapter.execute_query(query)
+            data = self._text_to_json(str(result[0].rows[0]))
+            return data['id']

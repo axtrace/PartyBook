@@ -9,6 +9,8 @@ from book_reader import BookReader
 from books_library import BooksLibrary
 from models.user import User
 from models.book import Book
+from file_extractor import FileExtractor
+from book_adder import BookAdder
 
 # Получаем токен бота из переменных окружения (для тестирования или для продакшена)
 token = os.environ['TOKEN']
@@ -18,6 +20,8 @@ bot = telebot.TeleBot(token)
 s3a = s3_adapter.s3Adapter()
 book_reader = BookReader()
 books_library = BooksLibrary()
+file_extractor = FileExtractor()
+book_adder = BookAdder()
 
 # Список команд для клавиатуры
 commands = ['/help', '/more', '/my_books', '/auto_status', '/now_reading',
@@ -299,6 +303,36 @@ def now_reading_answer(user_id):
         lang = books_library.get_lang(user_id)
         return config.error_current_book[lang]
     return book_name
+
+
+@bot.message_handler(content_types=['document'])
+def handle_document(message):
+    try:
+        user_id, chat_id = message.from_user.id, message.chat.id
+        lang = books_library.get_lang(user_id)
+        path_for_save = config.path_for_save
+        
+        bot.send_chat_action(chat_id, 'typing')
+        
+        # Скачиваем файл локально
+        local_file_path = file_extractor.local_save_file(bot, message, path_for_save)
+        
+        if local_file_path != -1:
+            # Обрабатываем файл и создаем чанки в БД
+            sending_mode = _get_user_send_mode(user_id)
+            book_id = book_adder.add_new_book(user_id, chat_id, local_file_path, sending_mode)
+            
+            if book_id != -1:
+                msg = config.message_file_added[lang]
+                bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+            else:
+                msg = config.error_file_processing[lang]
+                bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+        else:
+            msg = config.error_file_type[lang]
+            bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+    except Exception as e:
+        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
 
 def _get_user_send_mode(user_id):

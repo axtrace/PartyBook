@@ -23,6 +23,10 @@ except FileNotFoundError:
             "ru": "Ошибка! Принимаю только файлы .epub",
             "en": "Error! Only .epub files allowed"
         },
+        "error_file_processing": {
+            "ru": "Извините, произошла ошибка при обработке файла. Попробуйте еще раз.",
+            "en": "Sorry, an error occurred while processing the file. Please try again."
+        },
         "error_file_adding_failed": {
             "ru": "Ошибка! Не удалось сохранить файл.",
             "en": "Error! Failed to save file."
@@ -127,6 +131,7 @@ message_lang_changed = cfg.get('message_lang_changed', '')
 message_empty_booklist = cfg.get('message_empty_booklist', '')
 
 error_file_type = cfg.get('error_file_type', '')
+error_file_processing = cfg.get('error_file_processing', '')
 error_file_adding_failed = cfg.get('error_file_adding_failed', '')
 error_current_book = cfg.get('error_current_book', '')
 error_book_recognition = cfg.get('error_book_recognition', '')
