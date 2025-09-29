@@ -16,7 +16,8 @@ class DbManager:
 
     def _text_to_json(self, text):
         if not isinstance(text, str):
-            return text
+            print(f"❌ Ошибка: ожидалась строка, получен {type(text)}")
+            return None
 
         # Проверяем, если это уже Python словарь (repr format)
         if text.startswith('{') and text.endswith('}'):
@@ -34,7 +35,8 @@ class DbManager:
                             processed_result[key] = value
                     return processed_result
                 return result
-            except (ValueError, SyntaxError):
+            except (ValueError, SyntaxError) as e:
+                print(f"❌ Ошибка парсинга Python литерала: {e}")
                 pass
 
         # Универсальный подход - обрабатываем все проблемные символы пошагово
@@ -307,52 +309,21 @@ class DbManager:
         self.db_adapter.execute_query(query)
         return 0
 
-    def save_chunk(self, book_id, chunk_id, text):
-        # Save text chunk to book_chunks table
-        query = f"""
-            UPSERT INTO book_chunks
-                (bookId, chunkId, text)
-            VALUES
-                ({book_id}, {chunk_id}, "{text}");
-        """
-        self.db_adapter.execute_query(query)
-        return 0
-
-    def get_chunk(self, book_id, chunk_id):
-        # Get text chunk by book_id and chunk_id
-        query = f"""
-            SELECT text FROM book_chunks
-            WHERE bookId = {book_id} AND chunkId = {chunk_id};
-        """
-        result = self._execute_safe_query(query, {
-            'book_id': book_id,
-            'chunk_id': chunk_id
-        })
-        if not result or len(result[0].rows) == 0:
-            return None
-        data = self._text_to_json(str(result[0].rows[0]))
-        return data['text']
-
-    def get_total_chunks(self, book_id):
-        # Get total number of chunks for a book
-        query = f"""
-            SELECT COUNT(*) as total FROM book_chunks
-            WHERE bookId = {book_id};
-        """
-        result = self._execute_safe_query(query, {'book_id': book_id})
-        if not result or len(result[0].rows) == 0:
-            return 0
-        data = self._text_to_json(str(result[0].rows[0]))
-        return data['total']
 
     def get_or_create_book(self, book_name):
         # Get book ID or create new book, return book_id
+        if not book_name or book_name.strip() == "":
+            print(f"❌ Ошибка: пустое имя книги")
+            return None
+        
+        # Экранируем кавычки в имени книги для SQL запроса
+        escaped_book_name = book_name.replace('"', '\\"')
         print(f"🔍 Ищем книгу: {book_name}")
         
         # First try to find existing book
         query = f"""
             SELECT id FROM books
-            WHERE bookName = "{book_name}";
+            WHERE bookName = "{escaped_book_name}";
         """
         print(f"🔍 Выполняем запрос: {query}")
         result = self.db_adapter.execute_query(query)
@@ -361,8 +332,14 @@ class DbManager:
         if result and len(result[0].rows) > 0:
             # Book exists, return its ID
             print(f"✅ Книга найдена, извлекаем ID...")
+            print(f"🔍 Сырой результат: {result[0].rows[0]}")
+            print(f"🔍 Строковое представление: {str(result[0].rows[0])}")
             data = self._text_to_json(str(result[0].rows[0]))
-            book_id = data['id']
+            print(f"🔍 Распарсенные данные: {data}")
+            book_id = data.get('id')
+            if book_id is None:
+                print(f"❌ Ошибка: не удалось извлечь ID книги из данных: {data}")
+                return None
             print(f"✅ ID найденной книги: {book_id}")
             return book_id
         else:
@@ -379,7 +356,11 @@ class DbManager:
             
             if max_result and len(max_result[0].rows) > 0:
                 max_data = self._text_to_json(str(max_result[0].rows[0]))
-                next_id = (max_data.get('max_id', 0) or 0) + 1
+                max_id = max_data.get('max_id')
+                if max_id is None:
+                    next_id = 1
+                else:
+                    next_id = int(max_id) + 1
             else:
                 next_id = 1
             
@@ -390,7 +371,7 @@ class DbManager:
                 INSERT INTO books
                     (id, bookName, hash)
                 VALUES
-                    ({next_id}, "{book_name}", "");
+                    ({next_id}, "{escaped_book_name}", "");
             """
             print(f"📝 Выполняем INSERT: {query}")
             self.db_adapter.execute_query(query)

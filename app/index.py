@@ -323,14 +323,23 @@ def handle_document(message):
             print(f"📚 Книга обработана, ID: {book_id}")
             
             if book_id != -1:
+                # Проверяем, что lang - это валидный ключ
+                if lang not in config.message_file_added:
+                    lang = 'ru'  # Fallback на русский язык
                 msg = config.message_file_added[lang]
                 bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
                 print(f"✅ Книга успешно добавлена для пользователя {user_id}")
             else:
+                # Проверяем, что lang - это валидный ключ
+                if lang not in config.error_file_processing:
+                    lang = 'ru'  # Fallback на русский язык
                 msg = config.error_file_processing[lang]
                 bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
                 print(f"❌ Ошибка обработки файла для пользователя {user_id}")
         else:
+            # Проверяем, что lang - это валидный ключ
+            if lang not in config.error_file_type:
+                lang = 'ru'  # Fallback на русский язык
             msg = config.error_file_type[lang]
             bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
             print(f"❌ Неподдерживаемый тип файла: {message.document.file_name}")
