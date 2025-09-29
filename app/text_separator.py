@@ -1,6 +1,5 @@
 import re
 import errno
-from nltk.tokenize import sent_tokenize
 
 
 class TextSeparator(object):
@@ -37,7 +36,7 @@ class TextSeparator(object):
                           flags=re.M)
             # make one big string from all textlines and then separate them by dot
             text = re.sub(r'\s+', ' ', text, flags=re.M)
-            self._output_sentences = sent_tokenize(text, 'russian')
+            self._output_sentences = self._simple_sent_tokenize(text)
             # todo: auto detect lang
             # todo: limit max sentence size
         else:
@@ -53,6 +52,26 @@ class TextSeparator(object):
         # replace '.' to '. '
         text_piace = matchobj.group(0)
         return re.sub(r'\\.', '. ', text_piace, flags=re.M)
+
+    def _simple_sent_tokenize(self, text):
+        """
+        Простая токенизация предложений без NLTK
+        Разбивает текст по точкам, восклицательным и вопросительным знакам
+        """
+        # Паттерны для разделения предложений
+        sentence_endings = r'[.!?]+'
+        
+        # Разбиваем текст по концам предложений
+        sentences = re.split(sentence_endings, text)
+        
+        # Очищаем и фильтруем предложения
+        cleaned_sentences = []
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if sentence and len(sentence) > 3:  # Игнорируем очень короткие фрагменты
+                cleaned_sentences.append(sentence)
+        
+        return cleaned_sentences
 
     def _print(self):
         for sent in self._output_sentences:

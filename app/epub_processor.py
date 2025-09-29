@@ -33,28 +33,41 @@ class EpubProcessor(object):
             book_id: ID of the created book in database
         """
         try:
+            print(f"📖 Начинаем обработку EPUB: {epub_path}")
+            
             # Read EPUB file
             book_reader = EpubReader(epub_path)
             book_title = book_reader.get_booktitle()
+            print(f"📚 Название книги: {book_title}")
             
             if not book_title:
                 raise ValueError("Could not extract book title from EPUB")
             
             # Create filename for database
             book_name = self._make_filename(user_id, book_title)
+            print(f"📝 Имя файла для БД: {book_name}")
             
             # Get or create book in database
+            print(f"💾 Создаем/получаем книгу в БД...")
             book_id = self.db.get_or_create_book(book_name)
+            print(f"✅ Книга создана с ID: {book_id}")
             
             # Process text and create chunks
+            print(f"📄 Начинаем разбивку на чанки...")
+            chunk_count = 0
             cur_text = book_reader.get_next_item_text()
             while cur_text is not None:
                 if cur_text.strip():  # Only process non-empty text
+                    print(f"🔄 Обрабатываем текст длиной {len(cur_text)} символов...")
                     self.chunk_manager.create_chunks(book_id, cur_text, sending_mode)
+                    chunk_count += 1
                 cur_text = book_reader.get_next_item_text()
             
+            print(f"✅ Обработка завершена. Создано {chunk_count} чанков")
             return book_id
             
         except Exception as e:
-            print(f"Error processing EPUB: {str(e)}")
+            print(f"❌ Error processing EPUB: {str(e)}")
+            import traceback
+            print(f"❌ Traceback: {traceback.format_exc()}")
             raise e
