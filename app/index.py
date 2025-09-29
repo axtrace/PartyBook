@@ -187,13 +187,6 @@ def change_autostatus(message):
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
-@bot.message_handler(content_types=['document'])
-def handle_document(message):
-    try:
-        bot.reply_to(message, "document", reply_markup=user_markup_normal)
-    except Exception as e:
-        bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
-
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def handle_text(message):
     try:
@@ -312,26 +305,37 @@ def handle_document(message):
         lang = books_library.get_lang(user_id)
         path_for_save = config.path_for_save
         
+        print(f"📄 Получен документ от пользователя {user_id}: {message.document.file_name}")
+        
         bot.send_chat_action(chat_id, 'typing')
         
         # Скачиваем файл локально
         local_file_path = file_extractor.local_save_file(bot, message, path_for_save)
+        print(f"📁 Файл сохранен: {local_file_path}")
         
         if local_file_path != -1:
             # Обрабатываем файл и создаем чанки в БД
-            sending_mode = _get_user_send_mode(user_id)
+            # Для новых книг используем режим 'by_sense' по умолчанию
+            sending_mode = 'by_sense'
+            print(f"🔄 Начинаем обработку файла с режимом: {sending_mode}")
+            
             book_id = book_adder.add_new_book(user_id, chat_id, local_file_path, sending_mode)
+            print(f"📚 Книга обработана, ID: {book_id}")
             
             if book_id != -1:
                 msg = config.message_file_added[lang]
                 bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+                print(f"✅ Книга успешно добавлена для пользователя {user_id}")
             else:
                 msg = config.error_file_processing[lang]
                 bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+                print(f"❌ Ошибка обработки файла для пользователя {user_id}")
         else:
             msg = config.error_file_type[lang]
             bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
+            print(f"❌ Неподдерживаемый тип файла: {message.document.file_name}")
     except Exception as e:
+        print(f"❌ Критическая ошибка в handle_document: {str(e)}")
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
 
