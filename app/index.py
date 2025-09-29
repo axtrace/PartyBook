@@ -5,12 +5,12 @@ import boto3
 import requests
 import config
 import s3_adapter
-from .book_reader import BookReader
-from .books_library import BooksLibrary
-from .models.user import User
-from .models.book import Book
-from .file_extractor import FileExtractor
-from .book_adder import BookAdder
+from book_reader import BookReader
+from books_library import BooksLibrary
+from models.user import User
+from models.book import Book
+from file_extractor import FileExtractor
+from book_adder import BookAdder
 
 # Получаем токен бота из переменных окружения (для тестирования или для продакшена)
 token = os.environ['TOKEN']

@@ -3,7 +3,7 @@ import errno
 from time import gmtime, strftime
 from text_separator import TextSeparator
 import config
-from .db_manager import DbManager
+from db_manager import DbManager
 
 class BookChunkManager(object):
     """

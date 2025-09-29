@@ -1,8 +1,8 @@
 import os
-from .epub_reader import EpubReader
-from .txt_file import BookChunkManager
-from .db_manager import DbManager
-from .text_transliter import TextTransliter
+from epub_reader import EpubReader
+from txt_file import BookChunkManager
+from db_manager import DbManager
+from text_transliter import TextTransliter
 
 
 class EpubProcessor(object):
