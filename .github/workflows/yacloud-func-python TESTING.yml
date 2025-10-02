@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Deploy Function
+    
+    - name: Deploy Main Function
       id: sls-func
       uses: yc-actions/yc-sls-function@v2
       with:
@@ -30,6 +31,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_ACCESS_KEY_ID = ${{ secrets.AWS_ACCESS_KEY_ID }}
           BUCKET_NAME = ${{ secrets.BUCKET_NAME }}
+          MESSAGE_QUEUE_URL = ${{ secrets.MESSAGE_QUEUE_URL_TEST }}
+          AWS_REGION = ru-central1
         include: |
           **/*.py
           **/*.json
@@ -39,6 +42,60 @@ jobs:
           .github/**
           tests/**
           venv/**
-          **/*.ts
           .gitignore
           LICENSE
+    
+    - name: Deploy Queue Handler Function
+      id: sls-queue
+      uses: yc-actions/yc-sls-function@v2
+      with:
+        yc-sa-json-credentials: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+        folder-id: ${{ secrets.FOLDER_ID }}
+        function-name: 'book-processing-function-testing'
+        runtime: 'python312'
+        memory: '512Mb'
+        timeout: '300s'
+        entrypoint: 'queue_handler.handler'
+        service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
+        source-root: './app'
+        environment: |
+          TOKEN=${{ secrets.TEST_TOKEN }}
+          YDB_DATABASE=${{ secrets.YDB_DATABASE_TEST }}
+          YDB_ENDPOINT=${{ vars.YDB_ENDPOINT }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          MESSAGE_QUEUE_URL=${{ secrets.MESSAGE_QUEUE_URL_TEST }}
+          AWS_REGION=ru-central1
+        include: |
+          queue_handler.py
+          message_queue_processor.py
+          epub_reader.py
+          txt_file.py
+          db_manager.py
+          text_transliter.py
+          text_separator.py
+          books_library.py
+          ydb_adapter.py
+          text_replacer.py
+          config.py
+          models/**/*.py
+          requirements.txt
+        exclude: |
+          **/*.ts
+          .github/**
+          tests/**
+          venv/**
+          .gitignore
+          LICENSE
+          index.py
+          book_adder.py
+          epub_processor.py
+          async_epub_processor.py
+          file_extractor.py
+          file_manager.py
+          file_reader.py
+          file_writer.py
+          file_converter.py
+          s3_adapter.py
+          config.json
+          telebot_handler.py
