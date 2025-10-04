@@ -2,6 +2,7 @@ from epub_processor import EpubProcessor
 from async_epub_processor import AsyncEpubProcessor
 from queue_sender import QueueSender
 from books_library import BooksLibrary
+from db_manager import DbManager
 import os
 
 
@@ -13,6 +14,7 @@ class BookAdder(object):
         self.epub_processor = EpubProcessor()
         self.async_epub_processor = AsyncEpubProcessor()
         self.queue_sender = QueueSender()
+        self.db = DbManager()
 
     def add_new_book(self, user_id, chat_id, epub_path, sending_mode, bot=None):
         """
