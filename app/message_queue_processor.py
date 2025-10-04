@@ -73,8 +73,11 @@ class MessageQueueProcessor(object):
     def _process_single_message(self, message):
         """Обрабатываем одно сообщение из очереди"""
         try:
-            # Декодируем сообщение
-            if 'data' in message:
+            # Декодируем сообщение из Yandex Message Queue
+            if 'details' in message and 'message' in message['details'] and 'body' in message['details']['message']:
+                message_data = json.loads(message['details']['message']['body'])
+            elif 'data' in message:
+                # Fallback для других форматов
                 message_data = json.loads(message['data'])
             else:
                 print(f"❌ Нет данных в сообщении: {message}")
