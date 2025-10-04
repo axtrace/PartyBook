@@ -42,3 +42,23 @@ class s3Adapter:
         except Exception as e:
             print(f"Error accessing S3: {str(e)}")
         return None
+
+    def upload_file(self, local_file_path, s3_key):
+        """Upload a file to S3"""
+        try:
+            self.s3_client.upload_file(local_file_path, self._bucket_, s3_key)
+            print(f"✅ Файл загружен в S3: {local_file_path} -> {s3_key}")
+            return True
+        except Exception as e:
+            print(f"❌ Ошибка загрузки файла в S3: {e}")
+            return False
+
+    def download_file(self, s3_key, local_file_path):
+        """Download a file from S3"""
+        try:
+            self.s3_client.download_file(self._bucket_, s3_key, local_file_path)
+            print(f"✅ Файл загружен из S3: {s3_key} -> {local_file_path}")
+            return True
+        except Exception as e:
+            print(f"❌ Ошибка загрузки файла из S3: {e}")
+            return False

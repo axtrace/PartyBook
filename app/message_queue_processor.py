@@ -15,6 +15,29 @@ class MessageQueueProcessor(object):
         self.db = DbManager()
         self.transliter = TextTransliter()
 
+    def _download_from_s3(self, s3_path, user_id):
+        """Download EPUB file from S3 for processing"""
+        try:
+            import s3_adapter
+            s3a = s3_adapter.s3Adapter()
+            
+            # Создаем локальный путь для файла
+            import os
+            local_path = f"/tmp/{user_id}_{os.path.basename(s3_path)}"
+            
+            # Загружаем файл из S3
+            success = s3a.download_file(s3_path, local_path)
+            if success:
+                print(f"✅ Файл загружен из S3: {s3_path} -> {local_path}")
+                return local_path
+            else:
+                print(f"❌ Ошибка загрузки файла из S3: {s3_path}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Ошибка при загрузке файла из S3: {e}")
+            return None
+
     def _make_filename(self, user_id, book_title):
         """Create filename for book based on user_id and title"""
         trans_title = self.transliter.translite_text(book_title)
@@ -88,12 +111,18 @@ class MessageQueueProcessor(object):
             # Извлекаем данные
             user_id = message_data.get('user_id')
             chat_id = message_data.get('chat_id')
-            epub_path = message_data.get('epub_path')
+            s3_path = message_data.get('epub_path')  # Теперь это путь в S3
             sending_mode = message_data.get('sending_mode', 'by_sense')
             token = message_data.get('token')
             
-            if not all([user_id, chat_id, epub_path, token]):
+            if not all([user_id, chat_id, s3_path, token]):
                 print(f"❌ Неполные данные в сообщении: {message_data}")
+                return
+            
+            # Загружаем файл из S3
+            epub_path = self._download_from_s3(s3_path, user_id)
+            if not epub_path:
+                print(f"❌ Ошибка загрузки файла из S3: {s3_path}")
                 return
             
             # Отправляем уведомление о начале обработки

@@ -37,10 +37,17 @@ class BookAdder(object):
                 print(f"❌ Токен бота не найден в переменных окружения")
                 return -1
             
+            # Сохраняем файл в S3 для асинхронной обработки
+            print(f"📤 Сохраняем файл в S3 для асинхронной обработки...")
+            s3_path = self._upload_to_s3(epub_path, user_id)
+            if not s3_path:
+                print(f"❌ Ошибка загрузки файла в S3")
+                return -1
+            
             # Отправляем сообщение в очередь для асинхронной обработки
             print(f"📤 Отправляем книгу в очередь для обработки...")
             success = self.queue_sender.send_book_processing_message(
-                user_id, chat_id, epub_path, sending_mode, token
+                user_id, chat_id, s3_path, sending_mode, token
             )
             
             if not success:
@@ -68,6 +75,30 @@ class BookAdder(object):
             import traceback
             print(f"Traceback: {traceback.format_exc()}")
             return -1
+
+    def _upload_to_s3(self, epub_path, user_id):
+        """Upload EPUB file to S3 for asynchronous processing"""
+        try:
+            import s3_adapter
+            s3a = s3_adapter.s3Adapter()
+            
+            # Создаем уникальное имя файла
+            import uuid
+            file_id = str(uuid.uuid4())
+            s3_key = f"books/{user_id}/{file_id}.epub"
+            
+            # Загружаем файл в S3
+            success = s3a.upload_file(epub_path, s3_key)
+            if success:
+                print(f"✅ Файл загружен в S3: {s3_key}")
+                return s3_key
+            else:
+                print(f"❌ Ошибка загрузки файла в S3")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Ошибка при загрузке файла в S3: {e}")
+            return None
 
     def _make_filename(self, user_id, book_title):
         """Create filename for book based on user_id and title"""

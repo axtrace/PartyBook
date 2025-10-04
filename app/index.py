@@ -261,23 +261,27 @@ def send_portion(user_id, chat_id):
 
 def books_list_message(books_list, user_id):
     # prepare message and keyboard by list of user's books
-    lang = books_library.get_lang(user_id)
-    if len(books_list) == 0:
-        msg = config.message_empty_booklist[lang]
-        return msg, markup(['/help'])
-    msg = str(config.message_booklist[lang])
-    markup_list = []
-    for book in books_list:
-        msg += '\t' + str(book).replace(str(user_id) + '_', '') + '\n'
-        markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
-    msg += str(config.message_choose_book[lang])
-    return msg, markup(markup_list)
+        lang = books_library.get_lang(user_id)
+        if lang not in config.message_empty_booklist:
+            lang = 'ru'  # Fallback на русский язык
+        if len(books_list) == 0:
+            msg = config.message_empty_booklist[lang]
+            return msg, markup(['/help'])
+        msg = str(config.message_booklist[lang])
+        markup_list = []
+        for book in books_list:
+            msg += '\t' + str(book).replace(str(user_id) + '_', '') + '\n'
+            markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
+        msg += str(config.message_choose_book[lang])
+        return msg, markup(markup_list)
 
 
 def process_change_book(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_now_reading:
+            lang = 'ru'  # Fallback на русский язык
         new_book = message.text.replace('/', '')
         new_book = str(user_id) + '_' + new_book
         bot.send_chat_action(chat_id, 'typing')
@@ -312,6 +316,8 @@ def now_reading_answer(user_id):
     book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
     if book_name == -1:
         lang = books_library.get_lang(user_id)
+        if lang not in config.error_current_book:
+            lang = 'ru'  # Fallback на русский язык
         return config.error_current_book[lang]
     return book_name
 
