@@ -52,6 +52,8 @@ def start_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_success_start:
+            lang = 'ru'  # Fallback на русский язык
         msg = config.message_success_start[lang]
         bot.send_message(chat_id, msg,
                         reply_markup=markup(['/poem_mode', '/help']))
@@ -73,6 +75,8 @@ def help_handler(message):
         user_id, chat_id = message.from_user.id, message.chat.id
         bot.send_chat_action(chat_id, 'typing')
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_help:
+            lang = 'ru'  # Fallback на русский язык
         msg = config.message_help[lang]
         bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
@@ -95,6 +99,8 @@ def auto_status_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_everyday_ON:
+            lang = 'ru'  # Fallback на русский язык
         # 1 means auto is ON
         is_auto_ON = (books_library.get_auto_status(user_id) == 1)
         markup_list = ['/more', '/help']
@@ -130,6 +136,8 @@ def poem_mode_handler(message):
         
         if book_id is None or book_name is None:
             lang = books_library.get_lang(user_id)
+            if lang not in config.error_current_book:
+                lang = 'ru'  # Fallback на русский язык
             msg = config.error_current_book[lang]
             bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
             return
@@ -139,6 +147,8 @@ def poem_mode_handler(message):
         books_library.update_book_mode(user_id, book_id, new_mode)
         
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_poem_mode_ON:
+            lang = 'ru'  # Fallback на русский язык
         if new_mode == "poem":
             msg = config.message_poem_mode_ON[lang]
         else:
@@ -169,8 +179,12 @@ def change_lang(message):
         
         if new_lang in lang_list:
             books_library.update_lang(user_id, new_lang)
+            if new_lang not in config.message_lang_changed:
+                new_lang = 'ru'  # Fallback на русский язык
             msg = config.message_lang_changed[new_lang]
         else:
+            if cur_lang not in config.error_lang_recognition:
+                cur_lang = 'ru'  # Fallback на русский язык
             msg = config.error_lang_recognition[cur_lang]
         bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
@@ -207,6 +221,8 @@ def turn_off_autostatus(user_id, chat_id):
     if books_library.get_auto_status(user_id):
         books_library.switch_auto_status(user_id)
         lang = books_library.get_lang(user_id)
+        if lang not in config.message_everyday_OFF:
+            lang = 'ru'  # Fallback на русский язык
         auto_off_msg = config.message_everyday_OFF[lang]
         user_markup = markup(['/start_auto', '/my_books'])
         bot.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
@@ -216,6 +232,8 @@ def send_portion(user_id, chat_id):
     try:
         bot.send_chat_action(chat_id, 'typing')
         lang = books_library.get_lang(user_id) # todo: перейти на модель User.lang
+        if lang not in config.error_user_finding:
+            lang = 'ru'  # Fallback на русский язык
         msg = book_reader.get_next_portion(user_id)
         
         if msg is None:
