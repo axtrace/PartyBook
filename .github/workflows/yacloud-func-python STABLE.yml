@@ -61,6 +61,7 @@ jobs:
           YDB_ENDPOINT=${{ vars.YDB_ENDPOINT }}
           AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          BUCKET_NAME=${{ secrets.BUCKET_NAME }}
           MESSAGE_QUEUE_URL=${{ secrets.MESSAGE_QUEUE_URL_PROD }}
           AWS_REGION=ru-central1
         include: |
@@ -74,6 +75,7 @@ jobs:
           books_library.py
           ydb_adapter.py
           text_replacer.py
+          s3_adapter.py
           config.py
           models/**/*.py
           requirements.txt
