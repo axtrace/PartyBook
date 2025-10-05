@@ -50,7 +50,7 @@ jobs:
         folder-id: ${{ secrets.FOLDER_ID }}
         function-name: 'book-processing-function-stable'
         runtime: 'python312'
-        memory: '4096Mb'
+        memory: '8192Mb'
         execution-timeout: '600s'
         entrypoint: 'queue_handler.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
