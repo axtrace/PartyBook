@@ -16,7 +16,7 @@ class BooksLibrary(object):
 
     def update_current_book(self, user_id, chat_id, book_id):
         lang = self.get_lang(user_id)
-        self.db.update_current_book(user_id, chat_id, book_id)
+        self.db.update_current_book(user_id, book_id)
         pass
 
     def update_book_pos(self, user_id, book_id, new_pos):
