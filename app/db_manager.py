@@ -131,35 +131,147 @@ class DbManager:
         self.db_adapter.execute_query(deactivate_query)
 
         # Активируем новую книгу
-        activate_query = f"""
-            UPSERT INTO user_books
-                (userId, bookId, isActive)
-            VALUES
-                ({user_id}, {book_id}, true);
+        # Сначала проверяем, существует ли запись
+        check_query = f"""
+            SELECT id FROM user_books
+            WHERE userId = {user_id} AND bookId = {book_id};
         """
-        self.db_adapter.execute_query(activate_query)
+        result = self.db_adapter.execute_query(check_query)
+        
+        if result and len(result[0].rows) > 0:
+            # Запись существует, обновляем её
+            update_query = f"""
+                UPDATE user_books
+                SET isActive = true
+                WHERE userId = {user_id} AND bookId = {book_id};
+            """
+            self.db_adapter.execute_query(update_query)
+        else:
+            # Записи нет, создаем новую с уникальным id
+            # Получаем максимальный ID из таблицы user_books
+            max_id_query = "SELECT MAX(id) as max_id FROM user_books;"
+            max_result = self.db_adapter.execute_query(max_id_query)
+            
+            next_id = 1  # По умолчанию
+            if max_result and len(max_result[0].rows) > 0:
+                try:
+                    max_data = self._text_to_json(str(max_result[0].rows[0]))
+                    max_id = max_data.get('max_id')
+                    if max_id is not None:
+                        next_id = int(max_id) + 1
+                except Exception as e:
+                    print(f"⚠️ Ошибка получения max_id для user_books: {e}")
+                    try:
+                        raw_max_id = max_result[0].rows[0][0]
+                        if raw_max_id is not None:
+                            next_id = int(raw_max_id) + 1
+                    except Exception as e2:
+                        print(f"⚠️ Ошибка получения max_id (способ 2): {e2}")
+            
+            insert_query = f"""
+                INSERT INTO user_books
+                    (id, userId, bookId, isActive)
+                VALUES
+                    ({next_id}, {user_id}, {book_id}, true);
+            """
+            self.db_adapter.execute_query(insert_query)
+        
         return 0
 
     def update_auto_status(self, user_id, status_to):
         # change status of auto-sending
         new_status = self.bool_to_str(status_to)
-        query = f"""
-            UPSERT INTO users
-                (userId, isAutoSend)
-            VALUES
-                ({user_id}, {new_status});
+        
+        # Сначала проверяем, существует ли пользователь
+        check_query = f"""
+            SELECT userId FROM users WHERE userId = {user_id};
         """
+        result = self.db_adapter.execute_query(check_query)
+        
+        if result and len(result[0].rows) > 0:
+            # Пользователь существует, обновляем
+            query = f"""
+                UPDATE users
+                SET isAutoSend = {new_status}
+                WHERE userId = {user_id};
+            """
+        else:
+            # Пользователя нет, создаем с уникальным числовым id
+            # Получаем максимальный ID из таблицы users
+            max_id_query = "SELECT MAX(id) as max_id FROM users;"
+            max_result = self.db_adapter.execute_query(max_id_query)
+            
+            next_id = 1  # По умолчанию
+            if max_result and len(max_result[0].rows) > 0:
+                try:
+                    max_data = self._text_to_json(str(max_result[0].rows[0]))
+                    max_id = max_data.get('max_id')
+                    if max_id is not None:
+                        next_id = int(max_id) + 1
+                except Exception as e:
+                    print(f"⚠️ Ошибка получения max_id для users: {e}")
+                    try:
+                        raw_max_id = max_result[0].rows[0][0]
+                        if raw_max_id is not None:
+                            next_id = int(raw_max_id) + 1
+                    except Exception as e2:
+                        print(f"⚠️ Ошибка получения max_id (способ 2): {e2}")
+            
+            query = f"""
+                INSERT INTO users
+                    (id, userId, isAutoSend)
+                VALUES
+                    ({next_id}, {user_id}, {new_status});
+            """
+        
         self.db_adapter.execute_query(query)
         return 0
 
     def update_user_lang(self, user_id, lang):
         # change lang for user
-        query = f"""
-            UPSERT INTO users
-                (userId,lang)
-            VALUES
-                ({user_id},"{lang}");
+        
+        # Сначала проверяем, существует ли пользователь
+        check_query = f"""
+            SELECT userId FROM users WHERE userId = {user_id};
         """
+        result = self.db_adapter.execute_query(check_query)
+        
+        if result and len(result[0].rows) > 0:
+            # Пользователь существует, обновляем
+            query = f"""
+                UPDATE users
+                SET lang = "{lang}"
+                WHERE userId = {user_id};
+            """
+        else:
+            # Пользователя нет, создаем с уникальным числовым id
+            # Получаем максимальный ID из таблицы users
+            max_id_query = "SELECT MAX(id) as max_id FROM users;"
+            max_result = self.db_adapter.execute_query(max_id_query)
+            
+            next_id = 1  # По умолчанию
+            if max_result and len(max_result[0].rows) > 0:
+                try:
+                    max_data = self._text_to_json(str(max_result[0].rows[0]))
+                    max_id = max_data.get('max_id')
+                    if max_id is not None:
+                        next_id = int(max_id) + 1
+                except Exception as e:
+                    print(f"⚠️ Ошибка получения max_id для users: {e}")
+                    try:
+                        raw_max_id = max_result[0].rows[0][0]
+                        if raw_max_id is not None:
+                            next_id = int(raw_max_id) + 1
+                    except Exception as e2:
+                        print(f"⚠️ Ошибка получения max_id (способ 2): {e2}")
+            
+            query = f"""
+                INSERT INTO users
+                    (id, userId, lang)
+                VALUES
+                    ({next_id}, {user_id}, "{lang}");
+            """
+        
         self.db_adapter.execute_query(query)
         return 0
 
@@ -268,7 +380,7 @@ class DbManager:
         escaped_text = text.replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
         
         query = f"""
-            UPSERT INTO book_chunks
+            INSERT INTO book_chunks
                 (bookId, chunkId, text)
             VALUES
             ({book_id}, {chunk_id}, "{escaped_text}");
