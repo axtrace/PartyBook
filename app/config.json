@@ -4,8 +4,8 @@
     "en": "Hello! I am a book reading bot.\nJust send me a book file in .epub format, and you can start reading.\nI will remind you about your book every day by sending a small excerpt at 20:20.\nYou can stop reminders with the /stop_auto command.\nTo upload poems, enable /poem_mode.\nFor help, use /help.\nTo change the language, use /change_lang."
   },
   "message_file_added": {
-    "ru": "Файл успешно добавлен! Начните читать командой /more\nДля помощи используйте /help\n",
-    "en": "Success! File added.\nFor start reading use command /more\nFor more info use /help\n"
+    "ru": "📚 Ваш файл поставлен в очередь на обработку!\n⏱️ Это займет несколько минут\n📖 Вы получите уведомление, когда книга будет готова к чтению\nДля помощи используйте /help",
+    "en": "📚 Your file has been queued for processing!\n⏱️ This will take a few minutes\n📖 You will receive a notification when the book is ready to read\nFor help use /help"
   },
   "error_file_type": {
     "ru": "Ошибка! Принимаю только файлы .epub ",
