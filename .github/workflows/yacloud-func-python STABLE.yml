@@ -51,7 +51,7 @@ jobs:
         function-name: 'book-processing-function-stable'
         runtime: 'python312'
         memory: '4096Mb'
-        executionTimeout: '600s'
+        execution-timeout: '600s'
         entrypoint: 'queue_handler.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'
