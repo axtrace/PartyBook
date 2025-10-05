@@ -17,7 +17,7 @@ jobs:
         folder-id: ${{ secrets.FOLDER_ID }}
         function-name: 'partybook-on-func-stable'
         runtime: 'python312'
-        memory: '256Mb'
+        memory: '4096Mb' 
         entrypoint: 'index.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'        
@@ -51,7 +51,7 @@ jobs:
         function-name: 'book-processing-function-stable'
         runtime: 'python312'
         memory: '4096Mb'
-        timeout: '600s'
+        executionTimeout: '600s'
         entrypoint: 'queue_handler.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'
