@@ -136,9 +136,20 @@ class MessageQueueProcessor(object):
             self._active_processing.add(processing_key)
             
             # Загружаем файл из S3
+            self._send_telegram_notification(
+                chat_id, 
+                f"📥 Загружаю файл из облачного хранилища...", 
+                token
+            )
+            
             epub_path = self._download_from_s3(s3_path, user_id)
             if not epub_path:
                 print(f"❌ Ошибка загрузки файла из S3: {s3_path}")
+                self._send_telegram_notification(
+                    chat_id,
+                    f"❌ Ошибка загрузки файла из облачного хранилища",
+                    token
+                )
                 return
             
             # Отправляем уведомление о начале обработки
@@ -154,12 +165,8 @@ class MessageQueueProcessor(object):
             )
             
             if result['success']:
-                # Уведомляем об успешном завершении
-                self._send_telegram_notification(
-                    chat_id,
-                    f"🎉 Книга успешно обработана!\n📚 Создано чанков: {result['chunks_created']}\n📖 Теперь вы можете читать книгу командой /more",
-                    token
-                )
+                # Финальное сообщение уже отправлено в _process_epub_completely
+                print(f"✅ Обработка книги завершена успешно")
             else:
                 # Уведомляем об ошибке
                 self._send_telegram_notification(
@@ -196,18 +203,40 @@ class MessageQueueProcessor(object):
             print(f"📖 Начинаем полную обработку EPUB: {epub_path}")
             
             # Читаем EPUB файл
+            self._send_telegram_notification(
+                chat_id,
+                f"📖 Читаю структуру EPUB файла...",
+                token
+            )
+            
             book_reader = EpubReader(epub_path)
             book_title = book_reader.get_booktitle()
             print(f"📚 Название книги: {book_title}")
             
             if not book_title:
+                self._send_telegram_notification(
+                    chat_id,
+                    f"❌ Не удалось извлечь название книги из EPUB файла",
+                    token
+                )
                 return {'success': False, 'error': 'Could not extract book title from EPUB'}
             
             # Создаем книгу в БД
+            self._send_telegram_notification(
+                chat_id,
+                f"💾 Создаю запись в базе данных...",
+                token
+            )
+            
             book_name = self._make_filename(user_id, book_title)
             book_id = self.db.get_or_create_book(book_name)
             
             if book_id is None:
+                self._send_telegram_notification(
+                    chat_id,
+                    f"❌ Ошибка создания записи в базе данных",
+                    token
+                )
                 return {'success': False, 'error': f'Could not create book: {book_name}'}
             
             print(f"✅ Книга создана с ID: {book_id}")
@@ -224,13 +253,20 @@ class MessageQueueProcessor(object):
             # Отправляем промежуточное уведомление
             self._send_telegram_notification(
                 chat_id,
-                f"📊 Найдено {total_items} элементов для обработки\n🔄 Начинаю разбивку на чанки...",
+                f"📚 Книга: {book_title}\n📊 Найдено {total_items} элементов для обработки\n🔄 Начинаю разбивку на чанки...",
                 token
             )
             
             # Обрабатываем все элементы с защитой от бесконечного цикла
             max_processing_attempts = total_items * 2  # Максимум в 2 раза больше элементов
             processing_attempts = 0
+            
+            # Отправляем сообщение о начале обработки блоков
+            self._send_telegram_notification(
+                chat_id,
+                f"🔄 Начинаю обработку текстовых блоков...\n⏱️ Это может занять несколько минут",
+                token
+            )
             
             while processing_attempts < max_processing_attempts:
                 processing_attempts += 1
@@ -245,8 +281,8 @@ class MessageQueueProcessor(object):
                         total_chunks_created += chunks_created
                         text_blocks_processed += 1
                         
-                        # Отправляем прогресс каждые 10 блоков
-                        if text_blocks_processed % 10 == 0:
+                        # Отправляем прогресс каждые 2 блока для более частых обновлений
+                        if text_blocks_processed % 2 == 0:
                             progress_percent = (text_blocks_processed / total_items) * 100
                             self._send_telegram_notification(
                                 chat_id,
@@ -273,11 +309,25 @@ class MessageQueueProcessor(object):
             
             print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}, пропущено пустых: {empty_blocks_skipped}")
             
+            # Отправляем сообщение о завершении обработки блоков
+            self._send_telegram_notification(
+                chat_id,
+                f"✅ Обработка текста завершена!\n📊 Обработано блоков: {text_blocks_processed}\n📚 Создано чанков: {total_chunks_created}\n🔄 Сохраняю в библиотеку...",
+                token
+            )
+            
             # Обновляем библиотеку пользователя
             from books_library import BooksLibrary
             books_lib = BooksLibrary()
             books_lib.update_current_book(user_id, chat_id, book_id)
             books_lib.update_book_pos(user_id, book_id, 0)
+            
+            # Отправляем сообщение о завершении сохранения
+            self._send_telegram_notification(
+                chat_id,
+                f"💾 Книга сохранена в вашу библиотеку!\n📖 Теперь вы можете читать книгу командой /more",
+                token
+            )
             
             return {
                 'success': True,
