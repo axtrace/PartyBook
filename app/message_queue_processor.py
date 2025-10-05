@@ -114,10 +114,26 @@ class MessageQueueProcessor(object):
             s3_path = message_data.get('epub_path')  # Теперь это путь в S3
             sending_mode = message_data.get('sending_mode', 'by_sense')
             token = message_data.get('token')
+            timestamp = message_data.get('timestamp')
             
             if not all([user_id, chat_id, s3_path, token]):
                 print(f"❌ Неполные данные в сообщении: {message_data}")
                 return
+            
+            # Проверяем, не обрабатывается ли уже эта книга
+            # Создаем уникальный ключ для проверки дублирования
+            processing_key = f"processing_{user_id}_{s3_path}"
+            
+            # Проверяем, есть ли активная обработка этой книги
+            # (это простая проверка, в реальном проекте лучше использовать Redis или БД)
+            if hasattr(self, '_active_processing') and processing_key in self._active_processing:
+                print(f"⚠️ Книга уже обрабатывается: {processing_key}")
+                return
+            
+            # Отмечаем, что начинаем обработку
+            if not hasattr(self, '_active_processing'):
+                self._active_processing = set()
+            self._active_processing.add(processing_key)
             
             # Загружаем файл из S3
             epub_path = self._download_from_s3(s3_path, user_id)
@@ -156,11 +172,21 @@ class MessageQueueProcessor(object):
             if os.path.exists(epub_path):
                 os.remove(epub_path)
                 print(f"🗑️ Временный файл удален: {epub_path}")
+            
+            # Убираем флаг активной обработки
+            if hasattr(self, '_active_processing') and processing_key in self._active_processing:
+                self._active_processing.remove(processing_key)
+                print(f"✅ Обработка завершена, флаг удален: {processing_key}")
                 
         except Exception as e:
             print(f"❌ Ошибка обработки сообщения: {e}")
             import traceback
             print(f"❌ Traceback: {traceback.format_exc()}")
+            
+            # Убираем флаг активной обработки даже в случае ошибки
+            if hasattr(self, '_active_processing') and processing_key in self._active_processing:
+                self._active_processing.remove(processing_key)
+                print(f"⚠️ Обработка прервана с ошибкой, флаг удален: {processing_key}")
 
     def _process_epub_completely(self, user_id, chat_id, epub_path, sending_mode, token):
         """
@@ -202,8 +228,12 @@ class MessageQueueProcessor(object):
                 token
             )
             
-            # Обрабатываем все элементы
-            while True:
+            # Обрабатываем все элементы с защитой от бесконечного цикла
+            max_processing_attempts = total_items * 2  # Максимум в 2 раза больше элементов
+            processing_attempts = 0
+            
+            while processing_attempts < max_processing_attempts:
+                processing_attempts += 1
                 text = book_reader.get_next_item_text()
                 if text is None:
                     break
@@ -232,6 +262,14 @@ class MessageQueueProcessor(object):
                 else:
                     empty_blocks_skipped += 1
                     print(f"⚠️ Пропущен пустой блок #{empty_blocks_skipped}")
+            
+            if processing_attempts >= max_processing_attempts:
+                print(f"⚠️ Достигнуто максимальное количество попыток обработки ({max_processing_attempts}), прекращаем")
+                self._send_telegram_notification(
+                    chat_id,
+                    f"⚠️ Обработка прервана из-за превышения лимита попыток\n📊 Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}",
+                    token
+                )
             
             print(f"✅ Обработка завершена. Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}, пропущено пустых: {empty_blocks_skipped}")
             

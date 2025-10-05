@@ -57,49 +57,56 @@ class EpubReader():
 
     def get_next_item_text(self):
         # return text of next item with type ITEM_DOCUMENT
-        if len(self.item_ids) == 0:
-            print("📚 Все элементы книги обработаны")
-            return None
+        max_attempts = 100  # Ограничиваем количество попыток для предотвращения бесконечного цикла
+        attempts = 0
         
-        item_id = self.item_ids.pop(0)
-        remaining = len(self.item_ids)
-        print(f"📖 Обрабатываем элемент: {item_id} (осталось: {remaining})")
-        
-        try:
-            item_doc = self.book.get_item_with_id(item_id)
+        while len(self.item_ids) > 0 and attempts < max_attempts:
+            attempts += 1
+            item_id = self.item_ids.pop(0)
+            remaining = len(self.item_ids)
+            print(f"📖 Обрабатываем элемент: {item_id} (осталось: {remaining})")
             
-            if item_doc is None:
-                print(f"⚠️ Элемент {item_id} не найден, пропускаем")
-                return self.get_next_item_text()  # Рекурсивно переходим к следующему
-            
-            # Декодируем содержимое
             try:
-                content = item_doc.content.decode('utf-8')
-            except UnicodeDecodeError:
-                print(f"⚠️ Ошибка декодирования UTF-8 для {item_id}, пробуем latin-1")
-                content = item_doc.content.decode('latin-1')
-            
-            soup = bs(content, "xml")
-            
-            # Пытаемся получить текст из body, если его нет - из всего документа
-            if soup.body:
-                text = soup.body.get_text()
-            else:
-                text = soup.get_text()
-            
-            # Очищаем текст от лишних пробелов
-            text = ' '.join(text.split())
-            
-            if text.strip():
-                print(f"📄 Извлечен текст длиной {len(text)} символов из {item_id}")
-                print(f"📄 Превью текста: {text[:100]}...")
-                return text
-            else:
-                print(f"⚠️ Пустой текст в элементе {item_id}, пропускаем")
-                return self.get_next_item_text()  # Рекурсивно переходим к следующему
+                item_doc = self.book.get_item_with_id(item_id)
                 
-        except Exception as e:
-            print(f"❌ Ошибка при обработке элемента {item_id}: {e}")
-            import traceback
-            print(f"❌ Traceback: {traceback.format_exc()}")
-            return self.get_next_item_text()  # Рекурсивно переходим к следующему
+                if item_doc is None:
+                    print(f"⚠️ Элемент {item_id} не найден, пропускаем")
+                    continue  # Переходим к следующему элементу
+                
+                # Декодируем содержимое
+                try:
+                    content = item_doc.content.decode('utf-8')
+                except UnicodeDecodeError:
+                    print(f"⚠️ Ошибка декодирования UTF-8 для {item_id}, пробуем latin-1")
+                    content = item_doc.content.decode('latin-1')
+                
+                soup = bs(content, "xml")
+                
+                # Пытаемся получить текст из body, если его нет - из всего документа
+                if soup.body:
+                    text = soup.body.get_text()
+                else:
+                    text = soup.get_text()
+                
+                # Очищаем текст от лишних пробелов
+                text = ' '.join(text.split())
+                
+                if text.strip():
+                    print(f"📄 Извлечен текст длиной {len(text)} символов из {item_id}")
+                    print(f"📄 Превью текста: {text[:100]}...")
+                    return text
+                else:
+                    print(f"⚠️ Пустой текст в элементе {item_id}, пропускаем")
+                    continue  # Переходим к следующему элементу
+                    
+            except Exception as e:
+                print(f"❌ Ошибка при обработке элемента {item_id}: {e}")
+                import traceback
+                print(f"❌ Traceback: {traceback.format_exc()}")
+                continue  # Переходим к следующему элементу
+        
+        if attempts >= max_attempts:
+            print(f"⚠️ Достигнуто максимальное количество попыток ({max_attempts}), прекращаем обработку")
+        
+        print("📚 Все элементы книги обработаны")
+        return None
