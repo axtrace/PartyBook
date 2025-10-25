@@ -83,6 +83,59 @@ class QueueSender(object):
             print(f"❌ Неожиданная ошибка: {e}")
             return False
 
+    def send_batch_processing_message(self, batch_data):
+        """
+        Отправляем сообщение в очередь для обработки батча
+        
+        Args:
+            batch_data: Данные батча для обработки
+            
+        Returns:
+            bool: True если сообщение отправлено успешно
+        """
+        try:
+            if not self.queue_url:
+                print(f"❌ MESSAGE_QUEUE_URL не настроен")
+                return False
+            
+            # Добавляем timestamp
+            batch_data['timestamp'] = str(int(time.time()))
+            
+            message_body = json.dumps(batch_data)
+            
+            print(f"📤 Отправляем батч в очередь: {batch_data.get('batch_id')}")
+            print(f"📦 Батч содержит {len(batch_data.get('blocks', []))} блоков")
+            
+            # Отправляем сообщение
+            response = self.sqs_client.send_message(
+                QueueUrl=self.queue_url,
+                MessageBody=message_body,
+                MessageAttributes={
+                    'MessageType': {
+                        'StringValue': 'batch_processing',
+                        'DataType': 'String'
+                    },
+                    'ProcessingId': {
+                        'StringValue': batch_data.get('processing_id', 'unknown'),
+                        'DataType': 'String'
+                    },
+                    'BatchId': {
+                        'StringValue': batch_data.get('batch_id', 'unknown'),
+                        'DataType': 'String'
+                    }
+                }
+            )
+            
+            print(f"✅ Батч отправлен успешно: {response['MessageId']}")
+            return True
+            
+        except ClientError as e:
+            print(f"❌ Ошибка отправки батча в очередь: {e}")
+            return False
+        except Exception as e:
+            print(f"❌ Неожиданная ошибка при отправке батча: {e}")
+            return False
+
     def send_test_message(self):
         """Отправляем тестовое сообщение для проверки подключения"""
         try:

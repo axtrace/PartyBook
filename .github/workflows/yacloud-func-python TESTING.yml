@@ -20,7 +20,8 @@ jobs:
         folder-id: ${{ secrets.FOLDER_ID }}
         function-name: 'partybook-on-func-testing'
         runtime: 'python312'
-        memory: '4096Mb'
+        memory: '8192Mb'
+        execution-timeout: '1600s'
         entrypoint: 'index.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'
@@ -54,7 +55,7 @@ jobs:
         function-name: 'book-processing-function-testing'
         runtime: 'python312'
         memory: '8192Mb'
-        execution-timeout: '600s'
+        execution-timeout: '1600s'
         entrypoint: 'queue_handler.handler'
         service-account: ${{ secrets.SERVICE_ACCOUNT_ID }}
         source-root: './app'

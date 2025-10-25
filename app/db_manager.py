@@ -393,6 +393,55 @@ class DbManager:
             print(f"❌ Ошибка сохранения чанка {chunk_id} для книги {book_id}: {e}")
             raise e
 
+    def save_chunks_batch(self, book_id, chunks_list):
+        """
+        БАТЧИНГ: Сохраняем множество чанков одним запросом
+        Значительно быстрее чем отдельные INSERT'ы
+        """
+        if not chunks_list:
+            return 0
+        
+        # Получаем текущее количество чанков ОДИН РАЗ
+        current_chunk_count = self.get_total_chunks(book_id)
+        
+        # Подготавливаем VALUES для батчинга
+        values_parts = []
+        for i, chunk_text in enumerate(chunks_list):
+            chunk_id = current_chunk_count + i
+            escaped_text = chunk_text.replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+            values_parts.append(f"({book_id}, {chunk_id}, \"{escaped_text}\")")
+        
+        # Создаем один большой INSERT запрос
+        query = f"""
+            INSERT INTO book_chunks
+                (bookId, chunkId, text)
+            VALUES
+            {', '.join(values_parts)};
+        """
+        
+        try:
+            print(f"🚀 БАТЧИНГ: Сохраняем {len(chunks_list)} чанков одним запросом")
+            self.db_adapter.execute_query(query)
+            print(f"✅ БАТЧИНГ: Успешно сохранено {len(chunks_list)} чанков")
+            return len(chunks_list)
+        except Exception as e:
+            print(f"❌ Ошибка батчинга чанков: {e}")
+            # Fallback к отдельным INSERT'ам
+            return self._save_chunks_individually(book_id, chunks_list, current_chunk_count)
+    
+    def _save_chunks_individually(self, book_id, chunks_list, start_chunk_id):
+        """Fallback: сохраняем чанки по одному"""
+        chunks_created = 0
+        for i, chunk_text in enumerate(chunks_list):
+            try:
+                chunk_id = start_chunk_id + i
+                self.save_chunk(book_id, chunk_id, chunk_text)
+                chunks_created += 1
+            except Exception as e:
+                print(f"❌ Ошибка сохранения чанка {chunk_id}: {e}")
+                break
+        return chunks_created
+
     def get_chunk(self, book_id, chunk_id):
         query = """
             SELECT text FROM book_chunks

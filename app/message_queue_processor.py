@@ -257,17 +257,19 @@ class MessageQueueProcessor(object):
                 token
             )
             
-            # Обрабатываем все элементы с защитой от бесконечного цикла
-            max_processing_attempts = total_items * 2  # Максимум в 2 раза больше элементов
+            # ОПТИМИЗАЦИЯ: Собираем все текстовые блоки сначала
+            all_text_blocks = []
             processing_attempts = 0
+            max_processing_attempts = total_items * 2
             
             # Отправляем сообщение о начале обработки блоков
             self._send_telegram_notification(
                 chat_id,
-                f"🔄 Начинаю обработку текстовых блоков...\n⏱️ Это может занять несколько минут",
+                f"🔄 Собираю все текстовые блоки...\n⏱️ Это может занять несколько минут",
                 token
             )
             
+            # Сначала собираем все блоки
             while processing_attempts < max_processing_attempts:
                 processing_attempts += 1
                 text = book_reader.get_next_item_text()
@@ -275,29 +277,49 @@ class MessageQueueProcessor(object):
                     break
                 
                 if text.strip():
-                    print(f"🔄 Обрабатываем текст длиной {len(text)} символов...")
-                    try:
-                        chunks_created = self.chunk_manager.create_chunks(book_id, text, sending_mode)
-                        total_chunks_created += chunks_created
-                        text_blocks_processed += 1
-                        
-                        # Отправляем прогресс каждые 2 блока для более частых обновлений
-                        if text_blocks_processed % 2 == 0:
-                            progress_percent = (text_blocks_processed / total_items) * 100
-                            self._send_telegram_notification(
-                                chat_id,
-                                f"📊 Прогресс: {text_blocks_processed}/{total_items} ({progress_percent:.1f}%)\n📚 Создано чанков: {total_chunks_created}",
-                                token
-                            )
-                        
-                        print(f"📊 Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}")
-                        
-                    except Exception as e:
-                        print(f"❌ Ошибка при обработке текстового блока: {e}")
-                        # Продолжаем обработку других блоков
+                    all_text_blocks.append(text)
+                    print(f"📝 Собран блок {len(all_text_blocks)} длиной {len(text)} символов")
                 else:
                     empty_blocks_skipped += 1
                     print(f"⚠️ Пропущен пустой блок #{empty_blocks_skipped}")
+            
+            print(f"📊 Собрано {len(all_text_blocks)} текстовых блоков")
+            
+            # Теперь обрабатываем все блоки батчами
+            batch_size = 5  # Обрабатываем по 5 блоков за раз
+            total_batches = (len(all_text_blocks) + batch_size - 1) // batch_size
+            
+            self._send_telegram_notification(
+                chat_id,
+                f"🚀 Начинаю батчевую обработку {len(all_text_blocks)} блоков в {total_batches} батчах...",
+                token
+            )
+            
+            for batch_num in range(0, len(all_text_blocks), batch_size):
+                batch_blocks = all_text_blocks[batch_num:batch_num + batch_size]
+                batch_text = '\n\n'.join(batch_blocks)  # Объединяем блоки
+                
+                print(f"🔄 Обрабатываем батч {batch_num//batch_size + 1}/{total_batches} ({len(batch_blocks)} блоков)")
+                
+                try:
+                    chunks_created = self.chunk_manager.create_chunks(book_id, batch_text, sending_mode)
+                    total_chunks_created += chunks_created
+                    text_blocks_processed += len(batch_blocks)
+                    
+                    # Отправляем прогресс каждые 2 батча
+                    if (batch_num // batch_size + 1) % 2 == 0:
+                        progress_percent = (text_blocks_processed / total_items) * 100
+                        self._send_telegram_notification(
+                            chat_id,
+                            f"📊 Прогресс: {text_blocks_processed}/{total_items} ({progress_percent:.1f}%)\n📚 Создано чанков: {total_chunks_created}",
+                            token
+                        )
+                    
+                    print(f"📊 Обработано блоков: {text_blocks_processed}, создано чанков: {total_chunks_created}")
+                    
+                except Exception as e:
+                    print(f"❌ Ошибка при обработке батча: {e}")
+                    # Продолжаем обработку других батчей
             
             if processing_attempts >= max_processing_attempts:
                 print(f"⚠️ Достигнуто максимальное количество попыток обработки ({max_processing_attempts}), прекращаем")
