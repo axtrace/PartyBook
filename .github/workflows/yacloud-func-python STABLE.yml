@@ -125,6 +125,10 @@ jobs:
         include: |
           auto_sender.py
           shared_functions.py
+          books_library.py
+          book_reader.py
+          text_replacer.py
+          txt_file.py
           db_manager.py
           ydb_adapter.py
           config.py
