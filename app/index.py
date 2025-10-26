@@ -40,39 +40,55 @@ def markup(clist):
 # Создаем основную клавиатуру
 user_markup_normal = markup(commands)
 
-def handler(event, context):
-    # Проверяем, это ли триггер автопересылки
-    if 'trigger_type' in event and event['trigger_type'] == 'timer':
-        # Это триггер по расписанию - запускаем автопересылку
-        from auto_sender import AutoSender
-        from datetime import datetime
-        
-        print(f"🔄 Получен триггер автопересылки: {event}")
-        
-        try:
-            auto_sender = AutoSender()
-            current_time = datetime.now()
-            result = auto_sender.process_auto_send(current_time)
-            
-            print(f"✅ Автопересылка завершена: {result}")
-            return {
-                'statusCode': 200,
-                'body': json.dumps(result)
-            }
-        except Exception as e:
-            print(f"❌ Ошибка автопересылки: {e}")
-            return {
-                'statusCode': 500,
-                'body': json.dumps({'error': str(e)})
-            }
+def auto_send_handler(event, context):
+    """
+    Обработчик для триггера автопересылки
+    """
+    from auto_sender import AutoSender
+    from datetime import datetime
     
-    # Обычная обработка сообщений Telegram
+    print(f"🔄 Получен триггер автопересылки: {event}")
+    
+    try:
+        auto_sender = AutoSender()
+        current_time = datetime.now()
+        result = auto_sender.process_auto_send(current_time)
+        
+        print(f"✅ Автопересылка завершена: {result}")
+        return {
+            'statusCode': 200,
+            'body': json.dumps(result)
+        }
+    except Exception as e:
+        print(f"❌ Ошибка автопересылки: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
+
+
+def telegram_handler(event, context):
+    """
+    Обработчик для сообщений Telegram
+    """
     message = telebot.types.Update.de_json(event['body'])
     bot.process_new_updates([message])
     return {
         'statusCode': 200,
         'body': 'OK'
     }
+
+
+def handler(event, context):
+    """
+    Главный обработчик - определяет тип события и направляет в соответствующий handler
+    """
+    # Проверяем, это ли триггер автопересылки
+    if 'trigger_type' in event and event['trigger_type'] == 'timer':
+        return auto_send_handler(event, context)
+    
+    # Обычная обработка сообщений Telegram
+    return telegram_handler(event, context)
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
