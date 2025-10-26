@@ -128,6 +128,7 @@ jobs:
           books_library.py
           book_reader.py
           text_replacer.py
+          text_separator.py
           txt_file.py
           db_manager.py
           ydb_adapter.py
