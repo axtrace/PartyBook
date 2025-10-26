@@ -7,7 +7,7 @@
 import os
 import json
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from db_manager import DbManager
 from books_library import BooksLibrary
 from txt_file import BookChunkManager
@@ -25,27 +25,25 @@ class AutoSender:
         if not self.bot_token:
             raise ValueError("TOKEN environment variable not set")
     
-    def get_users_for_auto_send_by_time(self, last_run_time, current_time):
+    def get_users_for_auto_send_by_time(self, current_time):
         """
-        Получает пользователей для автопересылки по времени
+        Получает пользователей для автопересылки по их предпочтительному времени
         
         Args:
-            last_run_time: Время предыдущего запуска (datetime)
             current_time: Текущее время (datetime)
             
         Returns:
             list: Список пользователей с их данными
         """
-        # Преобразуем время в строки для сравнения
-        last_run_str = last_run_time.strftime("%H:%M")
-        current_run_str = current_time.strftime("%H:%M")
+        # Получаем текущее время в формате HH:MM
+        current_time_str = current_time.strftime("%H:%M")
         
+        # Получаем всех пользователей с включенной автопересылкой
         query = f"""
             SELECT userId, chatId, lang, time FROM users
             WHERE isAutoSend = true 
             AND time != ""
-            AND time >= "{last_run_str}"
-            AND time <= "{current_run_str}";
+            AND time = "{current_time_str}";
         """
         
         result = self.db.db_adapter.execute_query(query)
@@ -65,7 +63,7 @@ class AutoSender:
                     print(f"❌ Ошибка парсинга данных пользователя: {e}")
                     continue
         
-        print(f"📊 Найдено {len(users)} пользователей для автопересылки")
+        print(f"📊 Найдено {len(users)} пользователей для автопересылки в {current_time_str}")
         return users
     
     def send_portion_to_user(self, user_id, chat_id, lang='ru'):
@@ -171,21 +169,20 @@ class AutoSender:
                 raise
     
     
-    def process_auto_send(self, last_run_time, current_time):
+    def process_auto_send(self, current_time):
         """
         Основная функция обработки автопересылки
         
         Args:
-            last_run_time: Время предыдущего запуска
             current_time: Текущее время
             
         Returns:
             dict: Статистика обработки
         """
-        print(f"🚀 Начинаем автопересылку с {last_run_time} по {current_time}")
+        print(f"🚀 Начинаем автопересылку в {current_time.strftime('%H:%M')}")
         
-        # Получаем пользователей для отправки
-        users = self.get_users_for_auto_send_by_time(last_run_time, current_time)
+        # Получаем пользователей для отправки по их предпочтительному времени
+        users = self.get_users_for_auto_send_by_time(current_time)
         
         if not users:
             print("📭 Нет пользователей для автопересылки")
@@ -223,8 +220,8 @@ class AutoSender:
             'users_processed': len(users),
             'successful_sends': successful_sends,
             'errors': errors,
-            'last_run_time': last_run_time.isoformat(),
-            'current_time': current_time.isoformat()
+            'current_time': current_time.isoformat(),
+            'time_slot': current_time.strftime('%H:%M')
         }
         
         print(f"📊 Статистика автопересылки: {stats}")
@@ -236,7 +233,7 @@ def handler(event, context):
     Главная функция-обработчик для триггера автопересылки
     
     Args:
-        event: Событие от триггера (может содержать last_run_time)
+        event: Событие от триггера
         context: Контекст выполнения функции
         
     Returns:
@@ -245,18 +242,12 @@ def handler(event, context):
     print(f"🔄 Получено событие автопересылки: {event}")
     
     try:
-        # Определяем время предыдущего запуска
-        if 'last_run_time' in event:
-            last_run_time = datetime.fromisoformat(event['last_run_time'])
-        else:
-            # Если время не указано, берем час назад
-            last_run_time = datetime.now() - timedelta(hours=1)
-        
+        # Получаем текущее время
         current_time = datetime.now()
         
         # Создаем отправитель и обрабатываем
         auto_sender = AutoSender()
-        result = auto_sender.process_auto_send(last_run_time, current_time)
+        result = auto_sender.process_auto_send(current_time)
         
         print(f"✅ Автопересылка завершена: {result}")
         return {
@@ -276,10 +267,7 @@ def handler(event, context):
 
 if __name__ == "__main__":
     # Для локального тестирования
-    test_event = {
-        'last_run_time': (datetime.now() - timedelta(hours=1)).isoformat()
-    }
-    
+    test_event = {}
     test_context = {}
     
     result = handler(test_event, test_context)

@@ -63,10 +63,10 @@ jobs:
     - name: Create Timer Trigger for Auto Sender
       id: timer-trigger
       run: |
-        # Создаем триггер по расписанию (каждый час)
+        # Создаем триггер по расписанию (каждые 15 минут)
         yc serverless trigger create timer \
           --name auto-sender-timer \
-          --cron-expression "0 * * * *" \
+          --cron-expression "*/15 * * * *" \
           --invoke-function-name auto-sender-function \
           --invoke-function-tag \$latest \
           --invoke-function-service-account-id ${{ secrets.YC_SERVICE_ACCOUNT_ID }}
@@ -74,7 +74,7 @@ jobs:
     - name: Deploy Summary
       run: |
         echo "✅ Auto Sender Function deployed successfully!"
-        echo "📅 Timer trigger created: runs every hour"
+        echo "📅 Timer trigger created: runs every 15 minutes"
         echo "🔧 Function name: auto-sender-function"
         echo "⏰ Timeout: 60 seconds"
         echo "💾 Memory: 512 MB"
