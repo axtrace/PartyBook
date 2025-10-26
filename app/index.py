@@ -86,9 +86,8 @@ def handler(event, context):
     # Проверяем, это ли триггер автопересылки
     if 'trigger_type' in event and event['trigger_type'] == 'timer':
         return auto_send_handler(event, context)
-    
-    # Обычная обработка сообщений Telegram
-    return telegram_handler(event, context)
+    else:
+        return telegram_handler(event, context)
 
 @bot.message_handler(commands=['start'])
 def start_handler(message):
