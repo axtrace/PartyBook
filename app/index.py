@@ -41,6 +41,32 @@ def markup(clist):
 user_markup_normal = markup(commands)
 
 def handler(event, context):
+    # Проверяем, это ли триггер автопересылки
+    if 'trigger_type' in event and event['trigger_type'] == 'timer':
+        # Это триггер по расписанию - запускаем автопересылку
+        from auto_sender import AutoSender
+        from datetime import datetime
+        
+        print(f"🔄 Получен триггер автопересылки: {event}")
+        
+        try:
+            auto_sender = AutoSender()
+            current_time = datetime.now()
+            result = auto_sender.process_auto_send(current_time)
+            
+            print(f"✅ Автопересылка завершена: {result}")
+            return {
+                'statusCode': 200,
+                'body': json.dumps(result)
+            }
+        except Exception as e:
+            print(f"❌ Ошибка автопересылки: {e}")
+            return {
+                'statusCode': 500,
+                'body': json.dumps({'error': str(e)})
+            }
+    
+    # Обычная обработка сообщений Telegram
     message = telebot.types.Update.de_json(event['body'])
     bot.process_new_updates([message])
     return {
