@@ -59,6 +59,10 @@ class BooksLibrary(object):
     def get_users_for_autosend(self):
         return self.db.get_users_for_autosend()
 
+    def update_user_time(self, user_id, time_str):
+        """Обновляет время автопересылки для пользователя"""
+        return self.db.update_user_time(user_id, time_str)
+
     def get_current_book(self, user_id, is_format_name_needed=False):
         print(f"get_current_book. user_id: {user_id}, is_format_name_needed: {is_format_name_needed}")
         book_id, book_name, pos, mode = self.db.get_current_book(user_id)

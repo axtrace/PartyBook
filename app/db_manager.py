@@ -575,3 +575,47 @@ class DbManager:
             
             print(f"✅ ID созданной книги: {next_id}")
             return next_id
+
+    def update_user_time(self, user_id, time_str):
+        """Обновляет время автопересылки для пользователя"""
+        check_query = f"""
+            SELECT userId FROM users WHERE userId = {user_id};
+        """
+        result = self.db_adapter.execute_query(check_query)
+
+        if result and len(result[0].rows) > 0:
+            query = f"""
+                UPDATE users
+                SET time = "{time_str}"
+                WHERE userId = {user_id};
+            """
+        else:
+            # Пользователя нет, создаем с уникальным числовым id
+            max_id_query = "SELECT MAX(id) as max_id FROM users;"
+            max_result = self.db_adapter.execute_query(max_id_query)
+            
+            next_id = 1  # По умолчанию
+            if max_result and len(max_result[0].rows) > 0:
+                try:
+                    max_data = self._text_to_json(str(max_result[0].rows[0]))
+                    max_id = max_data.get('max_id')
+                    if max_id is not None:
+                        next_id = int(max_id) + 1
+                except Exception as e:
+                    print(f"⚠️ Ошибка получения max_id для users: {e}")
+                    try:
+                        raw_max_id = max_result[0].rows[0][0]
+                        if raw_max_id is not None:
+                            next_id = int(raw_max_id) + 1
+                    except Exception as e2:
+                        print(f"⚠️ Ошибка получения max_id (способ 2): {e2}")
+            
+            query = f"""
+                INSERT INTO users
+                    (id, userId, time)
+                VALUES
+                    ({next_id}, {user_id}, "{time_str}");
+            """
+        
+        self.db_adapter.execute_query(query)
+        return 0
