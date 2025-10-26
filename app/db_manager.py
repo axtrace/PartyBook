@@ -619,3 +619,44 @@ class DbManager:
         
         self.db_adapter.execute_query(query)
         return 0
+
+    def get_users_for_auto_send_by_time(self, current_time):
+        """
+        Получает пользователей для автопересылки по их предпочтительному времени
+        
+        Args:
+            current_time: Текущее время (datetime)
+            
+        Returns:
+            list: Список пользователей с их данными
+        """
+        # Получаем текущее время в формате HH:MM
+        current_time_str = current_time.strftime("%H:%M")
+        
+        # Получаем всех пользователей с включенной автопересылкой
+        query = f"""
+            SELECT userId, chatId, lang, time FROM users
+            WHERE isAutoSend = true 
+            AND time != ""
+            AND time = "{current_time_str}";
+        """
+        
+        result = self.db_adapter.execute_query(query)
+        users = []
+        
+        if result and len(result[0].rows) > 0:
+            for row in result[0].rows:
+                try:
+                    data = self._text_to_json(str(row))
+                    users.append({
+                        'user_id': data['userId'],
+                        'chat_id': data['chatId'],
+                        'lang': data.get('lang', 'ru'),
+                        'time': data['time']
+                    })
+                except Exception as e:
+                    print(f"❌ Ошибка парсинга данных пользователя: {e}")
+                    continue
+        
+        print(f"📊 Найдено {len(users)} пользователей для автопересылки в {current_time_str}")
+        return users

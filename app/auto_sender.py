@@ -9,8 +9,7 @@ import json
 import requests
 from datetime import datetime
 from db_manager import DbManager
-from books_library import BooksLibrary
-from txt_file import BookChunkManager
+from shared_functions import send_portion
 import config
 
 
@@ -19,8 +18,6 @@ class AutoSender:
     
     def __init__(self):
         self.db = DbManager()
-        self.books_lib = BooksLibrary()
-        self.chunk_manager = BookChunkManager()
         self.bot_token = os.environ.get('TOKEN')
         if not self.bot_token:
             raise ValueError("TOKEN environment variable not set")
@@ -35,40 +32,12 @@ class AutoSender:
         Returns:
             list: Список пользователей с их данными
         """
-        # Получаем текущее время в формате HH:MM
-        current_time_str = current_time.strftime("%H:%M")
-        
-        # Получаем всех пользователей с включенной автопересылкой
-        query = f"""
-            SELECT userId, chatId, lang, time FROM users
-            WHERE isAutoSend = true 
-            AND time != ""
-            AND time = "{current_time_str}";
-        """
-        
-        result = self.db.db_adapter.execute_query(query)
-        users = []
-        
-        if result and len(result[0].rows) > 0:
-            for row in result[0].rows:
-                try:
-                    data = self.db._text_to_json(str(row))
-                    users.append({
-                        'user_id': data['userId'],
-                        'chat_id': data['chatId'],
-                        'lang': data.get('lang', 'ru'),
-                        'time': data['time']
-                    })
-                except Exception as e:
-                    print(f"❌ Ошибка парсинга данных пользователя: {e}")
-                    continue
-        
-        print(f"📊 Найдено {len(users)} пользователей для автопересылки в {current_time_str}")
-        return users
+        return self.db.get_users_for_auto_send_by_time(current_time)
     
     def send_portion_to_user(self, user_id, chat_id, lang='ru'):
         """
         Отправляет следующий чанк пользователю
+        Использует общую функцию send_portion из shared_functions
         
         Args:
             user_id: ID пользователя
@@ -81,60 +50,28 @@ class AutoSender:
         try:
             print(f"📤 Отправляем чанк пользователю {user_id}")
             
-            # Получаем информацию о текущей книге пользователя
-            book_info = self.books_lib.get_current_book(user_id)
-            if not book_info or len(book_info) < 3:
-                # Нет активной книги
-                error_msg = config.error_user_finding.get(lang, config.error_user_finding['ru'])
-                self._send_telegram_message(chat_id, error_msg)
-                return {'success': False, 'reason': 'no_active_book'}
+            # Используем общую функцию send_portion (bot=None для автопересылки)
+            result = send_portion(user_id, chat_id, bot=None)
             
-            book_id, book_name, pos = book_info[0], book_info[1], book_info[2]
-            
-            # Получаем следующий чанк текста
-            text_piece, new_pos = self.chunk_manager.read_piece(book_id, pos)
-            
-            # Если чанк не найден, проверяем, не закончилась ли книга
-            if text_piece is None:
-                total_chunks = self.chunk_manager.get_total_chunks(book_id)
-                if pos >= total_chunks:
-                    # Книга закончена
-                    finished_text = config.message_book_finished.get(lang, config.message_book_finished['ru'])
-                    msg = config.end_book_string + f"\n{finished_text}\n/start_auto\n/my_books"
-                    
-                    # Отключаем автопересылку
-                    self.db.update_auto_status(user_id, False)
-                    print(f"📚 Книга пользователя {user_id} закончена, автопересылка отключена")
-                    
-                    self._send_telegram_message(chat_id, msg)
-                    return {'success': True, 'reason': 'book_finished'}
+            if isinstance(result, dict):
+                # Результат от общей функции для автопересылки
+                if result['success']:
+                    # Отправляем сообщение через Telegram API
+                    self._send_telegram_message(chat_id, result['message'])
+                    print(f"✅ Чанк отправлен пользователю {user_id}")
+                    return {'success': True}
                 else:
-                    # Ошибка получения чанка
-                    error_msg = config.error_user_finding.get(lang, config.error_user_finding['ru'])
-                    self._send_telegram_message(chat_id, error_msg)
-                    return {'success': False, 'reason': 'chunk_error'}
-            
-            # Проверяем, закончена ли книга по содержимому
-            if text_piece == config.end_book_string:
-                finished_text = config.message_book_finished.get(lang, config.message_book_finished['ru'])
-                msg = text_piece + f"\n{finished_text}\n/start_auto\n/my_books"
-                
-                # Отключаем автопересылку
-                self.db.update_auto_status(user_id, False)
-                print(f"📚 Книга пользователя {user_id} закончена, автопересылка отключена")
-                
-                self._send_telegram_message(chat_id, msg)
-                return {'success': True, 'reason': 'book_finished'}
-            
-            # Отправляем чанк
-            self._send_telegram_message(chat_id, text_piece)
-            
-            # Обновляем позицию в книге
-            self.books_lib.update_book_pos(user_id, book_id, new_pos)
-            
-            print(f"✅ Чанк отправлен пользователю {user_id}, следующая позиция: {new_pos}")
-            return {'success': True, 'next_pos': new_pos}
-            
+                    # Ошибка - отправляем сообщение об ошибке
+                    if 'message' in result:
+                        self._send_telegram_message(chat_id, result['message'])
+                    return result
+            else:
+                # Старый формат результата (0/-1)
+                if result == 0:
+                    return {'success': True}
+                else:
+                    return {'success': False, 'reason': 'unknown_error'}
+                    
         except Exception as e:
             print(f"❌ Ошибка отправки чанка пользователю {user_id}: {e}")
             return {'success': False, 'error': str(e)}

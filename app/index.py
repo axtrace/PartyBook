@@ -11,6 +11,7 @@ from models.user import User
 from models.book import Book
 from file_extractor import FileExtractor
 from book_adder import BookAdder
+from shared_functions import send_portion
 
 # Получаем токен бота из переменных окружения (для тестирования или для продакшена)
 token = os.environ['TOKEN']
@@ -64,7 +65,7 @@ def start_handler(message):
 def more_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
-        send_portion(user_id, chat_id)
+        send_portion(user_id, chat_id, bot)
         # bot.reply_to(message, "more", reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
@@ -209,54 +210,7 @@ def handle_text(message):
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
 
-def book_finished(portion):
-    if config.end_book_string in portion:
-        return True
-    if portion == '/more':
-        return True
-    return False
-
-def turn_off_autostatus(user_id, chat_id):
-    # turn off autostatus if book was finished
-    if books_library.get_auto_status(user_id):
-        books_library.switch_auto_status(user_id)
-        lang = books_library.get_lang(user_id)
-        if lang not in config.message_everyday_OFF:
-            lang = 'ru'  # Fallback на русский язык
-        auto_off_msg = config.message_everyday_OFF[lang]
-        user_markup = markup(['/start_auto', '/my_books'])
-        bot.send_message(chat_id, auto_off_msg, reply_markup=user_markup)
-
-
-def send_portion(user_id, chat_id):
-    try:
-        bot.send_chat_action(chat_id, 'typing')
-        lang = books_library.get_lang(user_id) # todo: перейти на модель User.lang
-        if lang not in config.error_user_finding:
-            lang = 'ru'  # Fallback на русский язык
-        msg = book_reader.get_next_portion(user_id)
-        
-        if msg is None:
-            msg = config.error_user_finding[lang]
-            bot.send_message(chat_id, msg)
-            return -1
-            
-        if book_finished(msg):
-            finished_text = config.message_book_finished[lang]
-            msg += f"\n{finished_text}\n/start_auto\n/my_books"
-            turn_off_autostatus(user_id, chat_id)
-        else:
-            msg += '\n/more'
-            
-        # Отправляем сообщение. Если сообщение слишком длинное — делим на части
-        max_telegram_size = 4096
-        for i in range(0, len(msg), max_telegram_size):
-            bot.send_message(chat_id, msg[i:i+max_telegram_size], reply_markup=markup([]))
-            
-        return 0
-    except Exception as e:
-        bot.send_message(chat_id, f"Error: {str(e)}")
-        return -1
+# Функции send_portion, book_finished, turn_off_autostatus теперь импортируются из shared_functions
 
 
 def books_list_message(books_list, user_id):

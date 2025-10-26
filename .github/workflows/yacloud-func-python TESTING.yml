@@ -127,6 +127,7 @@ jobs:
           AWS_REGION=ru-central1
         include: |
           auto_sender.py
+          shared_functions.py
           db_manager.py
           ydb_adapter.py
           config.py
