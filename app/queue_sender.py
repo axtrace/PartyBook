@@ -1,6 +1,7 @@
 import json
 import boto3
 import os
+import time
 from botocore.exceptions import ClientError
 
 
@@ -13,7 +14,7 @@ class QueueSender(object):
         self.aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
         self.aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
         self.region_name = os.environ.get('AWS_REGION', 'ru-central1')
-        
+
         # Создаем клиент SQS (совместимый с Yandex Message Queue)
         self.sqs_client = boto3.client(
             'sqs',
@@ -26,14 +27,14 @@ class QueueSender(object):
     def send_book_processing_message(self, user_id, chat_id, epub_path, sending_mode, token):
         """
         Отправляем сообщение в очередь для обработки книги
-        
+
         Args:
             user_id: ID пользователя
             chat_id: ID чата
             epub_path: Путь к EPUB файлу
             sending_mode: Режим обработки текста
             token: Токен бота для уведомлений
-            
+
         Returns:
             bool: True если сообщение отправлено успешно
         """
@@ -41,7 +42,7 @@ class QueueSender(object):
             if not self.queue_url:
                 print(f"❌ MESSAGE_QUEUE_URL не настроен")
                 return False
-            
+
             # Формируем сообщение
             message_data = {
                 'user_id': user_id,
@@ -51,12 +52,12 @@ class QueueSender(object):
                 'token': token,
                 'timestamp': str(int(time.time()))
             }
-            
+
             message_body = json.dumps(message_data)
-            
+
             print(f"📤 Отправляем сообщение в очередь: {self.queue_url}")
             print(f"📨 Данные сообщения: {message_data}")
-            
+
             # Отправляем сообщение
             response = self.sqs_client.send_message(
                 QueueUrl=self.queue_url,
@@ -72,10 +73,10 @@ class QueueSender(object):
                     }
                 }
             )
-            
+
             print(f"✅ Сообщение отправлено успешно: {response['MessageId']}")
             return True
-            
+
         except ClientError as e:
             print(f"❌ Ошибка отправки сообщения в очередь: {e}")
             return False
@@ -86,10 +87,10 @@ class QueueSender(object):
     def send_batch_processing_message(self, batch_data):
         """
         Отправляем сообщение в очередь для обработки батча
-        
+
         Args:
             batch_data: Данные батча для обработки
-            
+
         Returns:
             bool: True если сообщение отправлено успешно
         """
@@ -97,15 +98,15 @@ class QueueSender(object):
             if not self.queue_url:
                 print(f"❌ MESSAGE_QUEUE_URL не настроен")
                 return False
-            
+
             # Добавляем timestamp
             batch_data['timestamp'] = str(int(time.time()))
-            
+
             message_body = json.dumps(batch_data)
-            
+
             print(f"📤 Отправляем батч в очередь: {batch_data.get('batch_id')}")
             print(f"📦 Батч содержит {len(batch_data.get('blocks', []))} блоков")
-            
+
             # Отправляем сообщение
             response = self.sqs_client.send_message(
                 QueueUrl=self.queue_url,
@@ -125,10 +126,10 @@ class QueueSender(object):
                     }
                 }
             )
-            
+
             print(f"✅ Батч отправлен успешно: {response['MessageId']}")
             return True
-            
+
         except ClientError as e:
             print(f"❌ Ошибка отправки батча в очередь: {e}")
             return False
@@ -147,22 +148,17 @@ class QueueSender(object):
                 'token': 'test_token',
                 'timestamp': str(int(time.time()))
             }
-            
+
             message_body = json.dumps(test_data)
-            
+
             response = self.sqs_client.send_message(
                 QueueUrl=self.queue_url,
                 MessageBody=message_body
             )
-            
+
             print(f"✅ Тестовое сообщение отправлено: {response['MessageId']}")
             return True
-            
+
         except Exception as e:
             print(f"❌ Ошибка отправки тестового сообщения: {e}")
             return False
-
-
-# Импортируем time для timestamp
-import time
-
