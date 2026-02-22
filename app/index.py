@@ -46,14 +46,14 @@ def auto_send_handler(event, context):
     """
     from auto_sender import AutoSender
     from datetime import datetime
-    
+
     print(f"🔄 Получен триггер автопересылки: {event}")
-    
+
     try:
         auto_sender = AutoSender()
         current_time = datetime.now()
         result = auto_sender.process_auto_send(current_time)
-        
+
         print(f"✅ Автопересылка завершена: {result}")
         return {
             'statusCode': 200,
@@ -172,10 +172,10 @@ def poem_mode_handler(message):
     try:
         user_id, chat_id = message.from_user.id, message.chat.id
         bot.send_chat_action(chat_id, 'typing')
-        
+
         # Получаем текущую книгу пользователя
         book_id, book_name, pos, current_mode = books_library.get_current_book(user_id)
-        
+
         if book_id is None or book_name is None:
             lang = books_library.get_lang(user_id)
             if lang not in config.error_current_book:
@@ -183,11 +183,11 @@ def poem_mode_handler(message):
             msg = config.error_current_book[lang]
             bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
             return
-            
+
         # Переключаем режим: normal <-> poem
         new_mode = "poem" if current_mode == "normal" else "normal"
         books_library.update_book_mode(user_id, book_id, new_mode)
-        
+
         lang = books_library.get_lang(user_id)
         if lang not in config.message_poem_mode_ON:
             lang = 'ru'  # Fallback на русский язык
@@ -195,7 +195,7 @@ def poem_mode_handler(message):
             msg = config.message_poem_mode_ON[lang]
         else:
             msg = config.message_poem_mode_OFF[lang]
-            
+
         bot.send_message(chat_id, msg, reply_markup=user_markup_normal)
     except Exception as e:
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
@@ -218,7 +218,7 @@ def change_lang(message):
         cur_lang = books_library.get_lang(user_id)
         new_lang = message.text
         lang_list = ['en', 'ru']
-        
+
         if new_lang in lang_list:
             books_library.update_lang(user_id, new_lang)
             if new_lang not in config.message_lang_changed:
@@ -323,25 +323,25 @@ def handle_document(message):
         user_id, chat_id = message.from_user.id, message.chat.id
         lang = books_library.get_lang(user_id)
         path_for_save = config.path_for_save
-        
+
         print(f"📄 Получен документ от пользователя {user_id}: {message.document.file_name}")
-        
+
         bot.send_chat_action(chat_id, 'typing')
-        
+
         # Скачиваем файл локально
         local_file_path = file_extractor.local_save_file(bot, message, path_for_save)
         print(f"📁 Файл сохранен: {local_file_path}")
-        
+
         if local_file_path != -1:
             # Обрабатываем файл и создаем чанки в БД
             # Для новых книг используем режим 'by_sense' по умолчанию
             sending_mode = 'by_sense'
             print(f"🔄 Начинаем обработку файла с режимом: {sending_mode}")
-            
-            # Используем новый параллельный метод обработки
-            book_id = book_adder.add_new_book_parallel(user_id, chat_id, local_file_path, sending_mode, bot)
-            print(f"📚 Книга обработана, ID: {book_id}")
-            
+
+            # Используем асинхронный метод обработки через очередь
+            book_id = book_adder.add_new_book(user_id, chat_id, local_file_path, sending_mode, bot)
+            print(f"📚 Книга поставлена в очередь обработки, ID: {book_id}")
+
             if book_id != -1:
                 # Проверяем, что lang - это валидный ключ
                 if lang not in config.message_file_added:
@@ -371,7 +371,7 @@ def handle_document(message):
 def _get_user_send_mode(user_id):
     # Получаем режим текущей книги пользователя
     book_id, book_name, pos, mode = books_library.get_current_book(user_id)
-    
+
     if mode == "poem":
         return 'by_newline'  # Режим стихов - разбивка по строкам
     else:
