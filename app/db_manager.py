@@ -591,6 +591,8 @@ class DbManager:
                 if book_id is not None:
                     print(f"✅ ID найденной книги (способ 1): {book_id}")
                     return int(book_id)
+                else:
+                    print(f"⚠️ ID книги в БД равен NULL - это ошибка данных!")
             except Exception as e:
                 print(f"⚠️ Способ 1 не сработал: {e}")
 
@@ -602,11 +604,23 @@ class DbManager:
                     book_id = int(raw_id)
                     print(f"✅ ID найденной книги (способ 2): {book_id}")
                     return book_id
+                else:
+                    print(f"⚠️ ID книги в БД равен NULL - это ошибка данных!")
             except Exception as e:
                 print(f"⚠️ Способ 2 не сработал: {e}")
 
-            print(f"❌ Ошибка: не удалось извлечь ID книги")
-            return None
+            # Если книга найдена, но ID = NULL, это критическая ошибка данных
+            # Удаляем битую запись и создаем новую
+            print(f"🔧 Удаляем битую запись с NULL id...")
+            delete_query = """
+                DECLARE $book_name AS Utf8;
+
+                DELETE FROM books
+                WHERE bookName = $book_name AND id IS NULL;
+            """
+            self._execute_parameterized_query(delete_query, {'$book_name': book_name})
+            print(f"✅ Битая запись удалена, создаем новую...")
+            # Продолжаем создание новой записи ниже
         else:
             # Book doesn't exist, create new one
             print(f"📝 Книга не найдена, создаем новую...")
