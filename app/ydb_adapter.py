@@ -13,23 +13,23 @@ class YdbAdapter:
     def _ensure_connected(self):
         if self.driver:
             return
-        
+
         try:
             # Отладочная информация
             endpoint = os.getenv('YDB_ENDPOINT', '').rstrip('/')
             database = os.getenv('YDB_DATABASE', '')
             print(f"Connecting to YDB: endpoint={endpoint}, database={database}")
-            
+
             # Используем метаданные сервисного аккаунта для аутентификации
             credentials = ydb.iam.MetadataUrlCredentials()
-            
+
             self.driver = ydb.Driver(
                 endpoint=endpoint,
                 database=database,
                 credentials=credentials,
                 root_certificates=ydb.load_ydb_root_certificate()
             )
-            
+
             # Wait for the driver to become active for requests.
             print("Waiting for YDB driver to become active...")
             self.driver.wait(fail_fast=True, timeout=10)
@@ -38,21 +38,33 @@ class YdbAdapter:
             # Create the session pool instance to manage YDB sessions.
             self.pool = ydb.SessionPool(self.driver)
             print("YDB session pool created successfully!")
-            
+
         except Exception as e:
             print(f"Error connecting to YDB: {str(e)}")
             raise
 
-    def _run_transaction(self, session, query):
+    def _run_transaction(self, session, query, parameters=None):
         # Create the transaction and execute query.
         return session.transaction().execute(
             query,
+            parameters=parameters,
             commit_tx=True,
             settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
         )
 
-    def execute_query(self, query):
+    def execute_query(self, query, parameters=None):
+        """
+        Выполняет SQL запрос к YDB
+
+        Args:
+            query: SQL запрос (может содержать параметры вида $param_name)
+            parameters: Словарь параметров для подстановки (опционально)
+                       Например: {'$book_id': 1, '$book_name': 'Test'}
+
+        Returns:
+            Результат выполнения запроса
+        """
         self._ensure_connected()
         result = self.pool.retry_operation_sync(
-            lambda session: self._run_transaction(session, query))
+            lambda session: self._run_transaction(session, query, parameters))
         return result
