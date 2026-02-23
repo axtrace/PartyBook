@@ -45,12 +45,24 @@ class YdbAdapter:
 
     def _run_transaction(self, session, query, parameters=None):
         # Create the transaction and execute query.
-        return session.transaction().execute(
-            query,
-            parameters=parameters,
-            commit_tx=True,
-            settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
-        )
+        tx = session.transaction()
+
+        if parameters:
+            # Для параметризованных запросов используем prepare
+            prepared_query = session.prepare(query)
+            return tx.execute(
+                prepared_query,
+                parameters,
+                commit_tx=True,
+                settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
+            )
+        else:
+            # Без параметров - обычный execute
+            return tx.execute(
+                query,
+                commit_tx=True,
+                settings=ydb.BaseRequestSettings().with_timeout(3).with_operation_timeout(2)
+            )
 
     def execute_query(self, query, parameters=None):
         """
