@@ -380,10 +380,10 @@ class DbManager:
         user_books = []
 
         for row in result[0].rows:
-            data = self._text_to_json(str(row[0]))
+            data = self._text_to_json(str(row))
             book_id = data['bookId']
             book_name = data['bookName']
-            user_books.append({book_id: book_name})
+            user_books.append(book_name)
 
         return user_books
 
