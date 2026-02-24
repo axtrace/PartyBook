@@ -254,19 +254,21 @@ def handle_text(message):
 # Функции send_portion, book_finished, turn_off_autostatus теперь импортируются из shared_functions
 
 
-def books_list_message(books_list, user_id):
-    # prepare message and keyboard by list of user's books
+def books_list_message(books_dict, user_id):
+    # prepare message and keyboard by dict of user's books {book_name: book_id}
         lang = books_library.get_lang(user_id)
         if lang not in config.message_empty_booklist:
             lang = 'ru'  # Fallback на русский язык
-        if len(books_list) == 0:
+        if len(books_dict) == 0:
             msg = config.message_empty_booklist[lang]
             return msg, markup(['/help'])
         msg = str(config.message_booklist[lang])
         markup_list = []
-        for book in books_list:
-            msg += '\t' + str(book).replace(str(user_id) + '_', '') + '\n'
-            markup_list.append('/' + str(book).replace(str(user_id) + '_', ''))
+        for book_name in books_dict.keys():
+            # Убираем префикс user_id_ для отображения
+            display_name = str(book_name).replace(str(user_id) + '_', '')
+            msg += '\t' + display_name + '\n'
+            markup_list.append('/' + display_name)
         msg += str(config.message_choose_book[lang])
         return msg, markup(markup_list)
 
@@ -277,20 +279,42 @@ def process_change_book(message):
         lang = books_library.get_lang(user_id)
         if lang not in config.message_now_reading:
             lang = 'ru'  # Fallback на русский язык
-        new_book = message.text.replace('/', '')
-        new_book = str(user_id) + '_' + new_book
+
+        # Получаем выбранное имя книги (без слэша)
+        selected_display_name = message.text.replace('/', '')
+        # Добавляем префикс user_id_ для поиска в БД
+        selected_book_name = str(user_id) + '_' + selected_display_name
+
         bot.send_chat_action(chat_id, 'typing')
-        books_list = books_library.get_user_books(user_id)
-        if new_book in books_list:
-            books_library.update_current_book(user_id, chat_id, new_book)
-            book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
-            msg = config.message_now_reading[lang].format(book_name)
+        books_dict = books_library.get_user_books(user_id)
+
+        # Проверяем, есть ли книга в словаре и получаем её ID
+        if selected_book_name in books_dict:
+            book_id = books_dict[selected_book_name]
+            print(f"📚 Выбрана книга: {selected_book_name}, ID: {book_id}")
+
+            # Обновляем текущую книгу
+            books_library.update_current_book(user_id, chat_id, book_id)
+
+            # Получаем информацию о текущей книге для отображения
+            result_book_id, book_name, pos, mode = books_library.get_current_book(user_id, is_format_name_needed=True)
+
+            # Проверяем, что книга успешно установлена
+            if result_book_id == -1 or book_name == -1:
+                print(f"❌ Ошибка: не удалось установить книгу {selected_book_name} как текущую")
+                msg = config.error_book_recognition[lang]
+            else:
+                print(f"✅ Книга установлена: {book_name}")
+                msg = config.message_now_reading[lang].format(book_name)
+
             bot.send_message(chat_id, msg,
                             reply_markup=markup(['/more', '/help']))
         else:
+            print(f"❌ Книга {selected_book_name} не найдена в списке пользователя")
             msg = config.error_book_recognition[lang]
             bot.send_message(chat_id, msg)
     except Exception as e:
+        print(f"❌ Ошибка в process_change_book: {str(e)}")
         bot.reply_to(message, f"⚠️ Ошибка: {str(e)}")
 
 

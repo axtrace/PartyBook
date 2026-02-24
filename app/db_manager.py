@@ -128,6 +128,8 @@ class DbManager:
         })
 
     def update_current_book(self, user_id, book_id):
+        print(f"🔄 update_current_book: user_id={user_id}, book_id={book_id}")
+
         # Деактивируем предыдущую активную книгу пользователя
         deactivate_query = """
             DECLARE $user_id AS Uint64;
@@ -137,6 +139,7 @@ class DbManager:
             WHERE userId = $user_id AND isActive = true;
         """
         self._execute_parameterized_query(deactivate_query, {'$user_id': user_id})
+        print(f"✅ Деактивированы предыдущие активные книги")
 
         # Активируем новую книгу
         # Сначала проверяем, существует ли запись
@@ -154,6 +157,7 @@ class DbManager:
 
         if result and len(result[0].rows) > 0:
             # Запись существует, обновляем её
+            print(f"✅ Запись user_books существует, обновляем")
             update_query = """
                 DECLARE $user_id AS Uint64;
                 DECLARE $book_id AS Uint64;
@@ -166,8 +170,10 @@ class DbManager:
                 '$user_id': user_id,
                 '$book_id': book_id
             })
+            print(f"✅ Книга {book_id} активирована для пользователя {user_id}")
         else:
             # Записи нет, создаем новую с уникальным id
+            print(f"📝 Запись user_books не существует, создаем новую")
             # Получаем максимальный ID из таблицы user_books
             max_id_query = "SELECT MAX(id) as max_id FROM user_books;"
             max_result = self.db_adapter.execute_query(max_id_query)
@@ -193,14 +199,15 @@ class DbManager:
                 DECLARE $user_id AS Uint64;
                 DECLARE $book_id AS Uint64;
 
-                INSERT INTO user_books (id, userId, bookId, isActive)
-                VALUES ($id, $user_id, $book_id, true);
+                INSERT INTO user_books (id, userId, bookId, isActive, pos, mode)
+                VALUES ($id, $user_id, $book_id, true, 0, 'normal');
             """
             self._execute_parameterized_query(insert_query, {
                 '$id': next_id,
                 '$user_id': user_id,
                 '$book_id': book_id
             })
+            print(f"✅ Создана новая запись user_books с id={next_id}")
 
         return 0
 
@@ -365,7 +372,7 @@ class DbManager:
         return -1
 
     def get_user_books(self, user_id):
-        # Return all user's books
+        # Return all user's books as dict {book_name: book_id}
         query = """
             DECLARE $user_id AS Uint64;
 
@@ -377,13 +384,13 @@ class DbManager:
 
         result = self._execute_parameterized_query(query, {'$user_id': user_id})
 
-        user_books = []
+        user_books = {}
 
         for row in result[0].rows:
             data = self._text_to_json(str(row))
             book_id = data['bookId']
             book_name = data['bookName']
-            user_books.append(book_name)
+            user_books[book_name] = book_id
 
         return user_books
 
