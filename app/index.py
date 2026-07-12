@@ -71,7 +71,8 @@ def telegram_handler(event, context):
     """
     Обработчик для сообщений Telegram
     """
-    message = telebot.types.Update.de_json(event['body'])
+    body = json.loads(event['body'])
+    message = telebot.types.Update.de_json(body)
     bot.process_new_updates([message])
     return {
         'statusCode': 200,
